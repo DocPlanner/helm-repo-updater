@@ -1,0 +1,41 @@
+project_name: helm-repo-updater
+builds:
+  - id: helm-repo-updater
+    binary: helm-repo-updater
+    main: main.go
+    env:
+      - GO111MODULE=on
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+
+changelog:
+  sort: desc
+
+archives:
+  - format_overrides:
+      - goos: windows
+        format: zip
+    replacements:
+      amd64: 64-bit
+      darwin: macOS
+
+before:
+  hooks:
+    - go mod tidy
+
+release:
+  github:
+    owner: DocPlanner
+    name: helm-repo-updater
+
+nfpms:
+  - id: helm-repo-updater
+    builds:
+      - helm-repo-updater
+    formats:
+      - deb
