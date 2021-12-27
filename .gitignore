@@ -16,3 +16,6 @@
 
 # VisualStudioCode
 .vscode/* 
+
+### Intellij ###
+.idea
