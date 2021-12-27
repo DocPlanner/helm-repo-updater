@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/argoproj-labs/argocd-image-updater v0.11.0
+	github.com/google/go-cmp v0.5.6
 	github.com/mikefarah/yq/v4 v4.16.2
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.3.0

@@ -52,18 +52,18 @@ func overrideValues(cfg HelmUpdaterConfig, targetFile string) ([]ChangeEntry, er
 	for _, app := range cfg.UpdateApps {
 		// define new entry
 		var newEntry ChangeEntry
-		var oldValue, newValue string
+		var oldValue, newValue *string
 
 		// replace helm parameters
-		oldValue = yq.ReadKey(app.Key, targetFile)
-		if oldValue == "" {
-			logCtx.Infof("failed to read the presented key %s, skipping change", app.Key)
+		oldValue, err = yq.ReadKey(app.Key, targetFile)
+		if err != nil {
+			logCtx.Infof("failed to read the presented key %s due to error %s, skipping change", app.Key, err.Error())
 
 			continue
 		}
 
 		newEntry.Key = app.Key
-		newEntry.OldValue = oldValue
+		newEntry.OldValue = *oldValue
 
 		// replace helm parameters
 		logCtx.Infof("Setting new value for key %s: %s", app.Key, app.NewValue)
@@ -71,21 +71,20 @@ func overrideValues(cfg HelmUpdaterConfig, targetFile string) ([]ChangeEntry, er
 		if err != nil {
 			logCtx.Infof("failed to update key %s: %v", app.Key, err)
 
-			newEntry.NewValue = oldValue
+			newEntry.NewValue = *oldValue
 
 			continue
 		}
 
 		// check patched app
-		newValue = yq.ReadKey(app.Key, targetFile)
-		if newValue == "" {
-			logCtx.Infof("failed to read the patched key %s, skipping change", app.Key)
-
-			newEntry.NewValue = oldValue
+		newValue, err = yq.ReadKey(app.Key, targetFile)
+		if err != nil {
+			logCtx.Infof("failed to read the patched key %s due to error %s, skipping change", app.Key, err.Error())
+			newEntry.NewValue = *oldValue
 
 			continue
 		}
-		newEntry.NewValue = newValue
+		newEntry.NewValue = *newValue
 
 		// check if there is any change
 		if oldValue != newValue {
