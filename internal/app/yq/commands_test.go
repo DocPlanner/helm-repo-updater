@@ -13,6 +13,7 @@ import (
 
 const validKey = ".student-name"
 const invalidKey = "student-name"
+const contentSimpleFile = "Hello World"
 
 type Student struct {
 	Name string `yaml:"student-name"`
@@ -40,7 +41,7 @@ func createSimpleYaml() (out []byte, err error) {
 	return yamlData, nil
 }
 
-func writeSimpleYamlInFile() (*string, error) {
+func writeSimpleYamlInTempFile() (*string, error) {
 	yamlData, err := createSimpleYaml()
 
 	if err != nil {
@@ -64,13 +65,33 @@ func writeSimpleYamlInFile() (*string, error) {
 	return &tmpFileName, nil
 }
 
+func writeSimpleTempFile() (*string, error) {
+	tmpFile, err := createTempFile("yq-test")
+
+	if err != nil {
+		return nil, err
+	}
+
+	tmpFileName := tmpFile.Name()
+
+	if _, err = tmpFile.WriteString(contentSimpleFile); err != nil {
+		log.Fatal("Failed to write to temporary file", err)
+	}
+
+	// Close the file
+	if err := tmpFile.Close(); err != nil {
+		return nil, err
+	}
+	return &tmpFileName, nil
+}
+
 func TestMain(m *testing.M) {
 	code := m.Run()
 	os.Exit(code)
 }
 
 func TestQueryFile(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInFile()
+	yamlFile, err := writeSimpleYamlInTempFile()
 
 	if err != nil {
 		log.Fatal(err)
@@ -90,7 +111,7 @@ func TestQueryFile(t *testing.T) {
 }
 
 func TestQueryFileInNotExistentFile(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInFile()
+	yamlFile, err := writeSimpleYamlInTempFile()
 	incorrectYamlFile := *yamlFile + "ts"
 
 	if err != nil {
@@ -111,25 +132,13 @@ func TestQueryFileInNotExistentFile(t *testing.T) {
 }
 
 func TestQueryFileIncorrectFile(t *testing.T) {
-	tmpFile, err := createTempFile("yq-test")
+	simpleTmpFile, err := writeSimpleTempFile()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tmpFileName := tmpFile.Name()
-
-	if _, err = tmpFile.WriteString("Hello World"); err != nil {
-		log.Fatal("Failed to write to temporary file", err)
-	}
-
-	// Close the file
-	if err := tmpFile.Close(); err != nil {
-		log.Fatal(err)
-	}
-	defer os.Remove(tmpFileName)
-
-	_, err = QueryFile(validKey, tmpFileName)
+	_, err = QueryFile(validKey, *simpleTmpFile)
 
 	expectedError := fmt.Errorf(
 		"returned non singular result for yq expression: '%s'",
@@ -141,7 +150,7 @@ func TestQueryFileIncorrectFile(t *testing.T) {
 }
 
 func TestInplaceApplyInvalidKey(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInFile()
+	yamlFile, err := writeSimpleYamlInTempFile()
 
 	if err != nil {
 		log.Fatal(err)
@@ -162,7 +171,7 @@ func TestInplaceApplyInvalidKey(t *testing.T) {
 }
 
 func TestInplaceApplyInexistentFile(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInFile()
+	yamlFile, err := writeSimpleYamlInTempFile()
 
 	incorrectYamlFile := *yamlFile + "ts"
 
@@ -185,7 +194,7 @@ func TestInplaceApplyInexistentFile(t *testing.T) {
 }
 
 func TestInplaceApply(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInFile()
+	yamlFile, err := writeSimpleYamlInTempFile()
 
 	if err != nil {
 		log.Fatal(err)
@@ -212,7 +221,7 @@ func TestInplaceApply(t *testing.T) {
 }
 
 func TestReadKey(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInFile()
+	yamlFile, err := writeSimpleYamlInTempFile()
 
 	if err != nil {
 		log.Fatal(err)
@@ -233,7 +242,7 @@ func TestReadKey(t *testing.T) {
 }
 
 func TestReadKeyInvalidKey(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInFile()
+	yamlFile, err := writeSimpleYamlInTempFile()
 
 	if err != nil {
 		log.Fatal(err)
@@ -254,7 +263,7 @@ func TestReadKeyInvalidKey(t *testing.T) {
 }
 
 func TestReadKeyInexistentFile(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInFile()
+	yamlFile, err := writeSimpleYamlInTempFile()
 
 	incorrectYamlFile := *yamlFile + "ts"
 
@@ -271,6 +280,26 @@ func TestReadKeyInexistentFile(t *testing.T) {
 		incorrectYamlFile,
 	)
 
+	if err.Error() != expectedError.Error() {
+		t.Fatalf("The error obtained %s is not the expected %s", err.Error(), expectedError.Error())
+	}
+}
+
+func TestReadKeyIncorrectFile(t *testing.T) {
+	simpleTmpFile, err := writeSimpleTempFile()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer os.Remove(*simpleTmpFile)
+
+	_, err = ReadKey(validKey, *simpleTmpFile)
+
+	expectedError := fmt.Errorf(
+		"returned non singular result for yq expression: '%s'",
+		validKey,
+	)
 	if err.Error() != expectedError.Error() {
 		t.Fatalf("The error obtained %s is not the expected %s", err.Error(), expectedError.Error())
 	}
