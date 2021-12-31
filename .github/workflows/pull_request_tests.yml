@@ -36,6 +36,7 @@ jobs:
       - name: Kill all in port 22
         run: |
           sudo fuser -k 22/tcp
+          sudo fuser -k 22/tcp4
 
       - name: Create git-repo-server and repository with docker
         run: bash launch_test_env.sh "create"
