@@ -26,18 +26,6 @@ const invalidGitRepoBranch = "developp"
 const validHelmAppName = "example-app"
 const validHelmAppFileToChange = validHelmAppName + "/values.yaml"
 
-func equalChangeEntrySlices(a, b []ChangeEntry) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i, v := range a {
-		if v != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
 func getRouteRelativePath(numRelativePath int, relativePath string) (*string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
@@ -332,7 +320,7 @@ func TestUpdateApplicationDryRuNoBranch(t *testing.T) {
 
 	syncState := NewSyncIterationState()
 	_, err = UpdateApplication(cfg, syncState)
-	expectedErrorMessage := fmt.Sprintf("could not resolve symbolic ref '': `git symbolic-ref ` failed exit status 128: fatal: No such ref:")
+	expectedErrorMessage := "could not resolve symbolic ref '': `git symbolic-ref ` failed exit status 128: fatal: No such ref:"
 
 	assert.Error(t, err, expectedErrorMessage)
 }
@@ -443,6 +431,10 @@ func TestUpdateApplicationDryRunInvalidKey(t *testing.T) {
 
 	syncState := NewSyncIterationState()
 	apps, err := UpdateApplication(cfg, syncState)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	assert.DeepEqual(t, *apps, expectedChangedEntries)
 }
