@@ -10,22 +10,22 @@ import (
 )
 
 // UpdateApplication update all values of a single application.
-func UpdateApplication(cfg HelmUpdaterConfig, state *SyncIterationState) error {
-	err := commitChangesLocked(cfg, state)
+func UpdateApplication(cfg HelmUpdaterConfig, state *SyncIterationState) (*[]ChangeEntry, error) {
+	appsChanges, err := commitChangesLocked(cfg, state)
 	if err != nil {
 		log.Errorf("Could not update application spec: %v", err)
 
-		return err
+		return nil, err
 	}
 
 	log.Infof("Successfully updated the live application spec")
 
-	return nil
+	return appsChanges, nil
 
 }
 
 // commitChangesLocked commits the changes to the git repository.
-func commitChangesLocked(cfg HelmUpdaterConfig, state *SyncIterationState) error {
+func commitChangesLocked(cfg HelmUpdaterConfig, state *SyncIterationState) (*[]ChangeEntry, error) {
 	lock := state.GetRepositoryLock(cfg.GitConf.RepoURL)
 	lock.Lock()
 	defer lock.Unlock()
@@ -35,7 +35,7 @@ func commitChangesLocked(cfg HelmUpdaterConfig, state *SyncIterationState) error
 
 // commitChangesGit commits any changes required for updating one or more values
 // after the UpdateApplication cycle has finished.
-func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) error {
+func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry, error) {
 	var apps []ChangeEntry
 	var skip bool
 	var gitCommitMessage string
@@ -44,12 +44,12 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) error {
 
 	creds, err := cfg.GitCredentials.NewCreds(cfg.GitConf.RepoURL)
 	if err != nil {
-		return fmt.Errorf("could not get creds for repo '%s': %v", cfg.AppName, err)
+		return nil, fmt.Errorf("could not get creds for repo '%s': %v", cfg.AppName, err)
 	}
 	var gitC git.Client
 	tempRoot, err := ioutil.TempDir(os.TempDir(), fmt.Sprintf("git-%s", cfg.AppName))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer func() {
 		err := os.RemoveAll(tempRoot)
@@ -60,23 +60,23 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) error {
 
 	gitC, err = git.NewClientExt(cfg.GitConf.RepoURL, tempRoot, creds, false, false, "")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = gitC.Init()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = gitC.Fetch("")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Set username and e-mail address used to identify the commiter
 	if cfg.GitCredentials.Username != "" && cfg.GitCredentials.Email != "" {
 		err = gitC.Config(cfg.GitCredentials.Username, cfg.GitCredentials.Email)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -87,20 +87,21 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) error {
 		checkOutBranch, err = gitC.SymRefToBranch(checkOutBranch)
 		logCtx.Infof("resolved remote default branch to '%s' and using that for operations", checkOutBranch)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	err = gitC.Checkout(checkOutBranch)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// write changes to files
 	if err, skip, apps = write(cfg, gitC); err != nil {
-		return err
+		return nil, err
+		//TODO: Review how to do when skip
 	} else if skip {
-		return nil
+		return nil, nil
 	}
 
 	commitOpts := &git.CommitOptions{}
@@ -111,13 +112,13 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) error {
 	if gitCommitMessage != "" {
 		cm, err := ioutil.TempFile("", "image-updater-commit-msg")
 		if err != nil {
-			return fmt.Errorf("cold not create temp file: %v", err)
+			return nil, fmt.Errorf("cold not create temp file: %v", err)
 		}
 		logCtx.Debugf("Writing commit message to %s", cm.Name())
 		err = ioutil.WriteFile(cm.Name(), []byte(gitCommitMessage), 0600)
 		if err != nil {
 			_ = cm.Close()
-			return fmt.Errorf("could not write commit message to %s: %v", cm.Name(), err)
+			return nil, fmt.Errorf("could not write commit message to %s: %v", cm.Name(), err)
 		}
 		commitOpts.CommitMessagePath = cm.Name()
 		_ = cm.Close()
@@ -127,17 +128,17 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) error {
 	if cfg.DryRun {
 		logCtx.Infof("dry run, not committing changes")
 
-		return nil
+		return &apps, nil
 	}
 
 	err = gitC.Commit("", commitOpts)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = gitC.Push("origin", checkOutBranch, false)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &apps, nil
 }
