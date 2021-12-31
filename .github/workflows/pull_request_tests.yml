@@ -28,6 +28,9 @@ jobs:
         with:
           go-version: 1.17
 
+      - name: Kill all in port 22
+        run: fuser -k 22/tcp
+
       - name: Create git-repo-server and repository with docker
         run: bash launch_test_env.sh "create"
 
