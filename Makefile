@@ -2,7 +2,7 @@ GO                          = $(shell which go)
 GOBIN_TOOL                  = $(shell which gobin || echo $(GOPATH)/gobin)
 GO_INPUT                    = $(CURDIR)/main.go
 GO_OUTPUT                   = $(CURDIR)/bin/$(APP_NAME)
-APP_NAME                    = helm-repo-updater
+APP_NAME                    =? helm-repo-updater
 GO_TEST_DEFAULT_ARG         = -v ./internal/...
 
 .PHONY: build
