@@ -439,7 +439,6 @@ func TestUpdateApplicationDryRunInvalidKey(t *testing.T) {
 	assert.DeepEqual(t, *apps, expectedChangedEntries)
 }
 
-//TODO: Check check with git-repo-server created with docker
 func TestUpdateApplication(t *testing.T) {
 
 	sshPrivKeyRoute, err := getRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
