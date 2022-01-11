@@ -36,7 +36,7 @@ jobs:
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
-            ssh-private-key: $(cat test-git-server/private_keys/helm-repo-updater-test)
+            ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - run: make build
 
