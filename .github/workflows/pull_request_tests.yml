@@ -30,6 +30,4 @@ jobs:
 
       - run: make build
 
-      - run: make launch-test-deps
-
       - run: make test

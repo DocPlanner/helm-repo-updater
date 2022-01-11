@@ -2,7 +2,7 @@ GO                          = $(shell which go)
 GOBIN_TOOL                  = $(shell which gobin || echo $(GOPATH)/gobin)
 GO_INPUT                    = $(CURDIR)/main.go
 GO_OUTPUT                   = $(CURDIR)/bin/$(APP_NAME)
-APP_NAME                    =? helm-repo-updater
+APP_NAME                    ?= helm-repo-updater
 GO_TEST_DEFAULT_ARG         = -v ./internal/...
 
 .PHONY: build
@@ -29,15 +29,15 @@ clean-test-deps:
 test: test-unit
 
 .PHONY: test-benchmark
-test-benchmark:
+test-benchmark: launch-test-deps
 	$(GO) test ${GO_TEST_DEFAULT_ARG} -cpu 1,2,4,8 -benchmem -bench .
 
 .PHONY: test-unit
-test-unit:
+test-unit: launch-test-deps
 	$(GO) test ${GO_TEST_DEFAULT_ARG}
 
 .PHONY: test-coverage
-test-coverage:
+test-coverage: launch-test-deps
 	$(GO) test ${GO_TEST_DEFAULT_ARG} -cover
 
 .PHONY: lint
