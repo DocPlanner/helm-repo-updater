@@ -454,13 +454,10 @@ func TestUpdateApplication(t *testing.T) {
 	}
 
 	gConf := git.Conf{
-		RepoURL: "ssh://git@localhost:2222/git-server/repos/test-repo.git",
+		RepoURL: validGitRepoURL,
 		Branch:  validGitRepoBranch,
 		File:    "",
 	}
-
-	fmt.Printf("validGitRepoURL: \t%s\n", validGitRepoURL)
-	fmt.Printf("expetectedGitRepoURL: \tssh://git@localhost:2222/git-server/repos/test-repo.git\n")
 
 	changeEntry := ChangeEntry{
 		OldValue: "1.0.0",
