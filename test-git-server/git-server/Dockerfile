@@ -2,6 +2,8 @@ FROM alpine:3.15.0
 
 LABEL maintainer="Docplanner <devops@docplanner.com>"
 
+RUN whoami
+
 RUN apk add --no-cache openssh git
 
 # Key generation on the server
@@ -22,9 +24,11 @@ RUN mkdir /git-server/keys \
 # named git-shell-commands in the user’s home directory.
 # More info: https://git-scm.com/docs/git-shell
 COPY git-server/git-shell-commands /home/git/git-shell-commands
+RUN chmod -R +x /home/git/git-shell-commands
 
 # sshd_config file is edited for enable access key and disable access password
 COPY git-server/sshd_config /etc/ssh/sshd_config
+COPY git-server/create_repo.sh create_repo.sh
 COPY git-server/start.sh start.sh
 
 EXPOSE 22

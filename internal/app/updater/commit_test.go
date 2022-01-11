@@ -15,11 +15,11 @@ import (
 
 const validGitCredentialsEmail = "test-user@docplanner.com"
 const validGitCredentialsUsername = "test-user"
-const validGitRepoHost = "git@localhost"
+const validGitRepoHost = "ssh://git@localhost:2222"
 const validGitRepoRoute = "/git-server/repos/test-repo.git"
-const validGitRepoURL = validGitRepoHost + ":" + validGitRepoRoute
+const validGitRepoURL = validGitRepoHost + validGitRepoRoute
 const invalidGitRepoRoute = "/git-server/repos/test-r"
-const invalidGitRepoURL = validGitRepoHost + ":" + invalidGitRepoRoute
+const invalidGitRepoURL = validGitRepoHost + invalidGitRepoRoute
 const validSSHPrivKeyRelativeRoute = "/test-git-server/private_keys/helm-repo-updater-test"
 const validGitRepoBranch = "develop"
 const invalidGitRepoBranch = "developp"
@@ -454,10 +454,13 @@ func TestUpdateApplication(t *testing.T) {
 	}
 
 	gConf := git.Conf{
-		RepoURL: validGitRepoURL,
+		RepoURL: "ssh://git@localhost:2222/git-server/repos/test-repo.git",
 		Branch:  validGitRepoBranch,
 		File:    "",
 	}
+
+	fmt.Printf("validGitRepoURL: \t%s\n", validGitRepoURL)
+	fmt.Printf("expetectedGitRepoURL: \tssh://git@localhost:2222/git-server/repos/test-repo.git\n")
 
 	changeEntry := ChangeEntry{
 		OldValue: "1.0.0",
@@ -480,7 +483,9 @@ func TestUpdateApplication(t *testing.T) {
 	}
 
 	syncState := NewSyncIterationState()
-	_, err = UpdateApplication(cfg, syncState)
-
-	log.Printf("err: %s\n", err.Error())
+	apps, err := UpdateApplication(cfg, syncState)
+	if err != nil {
+		log.Fatal(err)
+	}
+	assert.DeepEqual(t, *apps, changeEntries)
 }

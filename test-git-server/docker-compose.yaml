@@ -7,18 +7,9 @@ services:
       container_name: git-server
       restart: always
       ports:
-        - "22:22"
+        - "2222:22"
       volumes:
         - "./repo_keys:/git-server/keys"
-        - "repos:/git-server/repos"
-    create-repo:
-      depends_on: 
-        - git-server
-      build:
-        dockerfile: create-repo/Dockerfile
-        context: .
-      container_name: create-repo
-      volumes:
         - "repos:/git-server/repos"
 volumes:
   repos:

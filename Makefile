@@ -16,6 +16,15 @@ build: clean
 clean:
 	rm -f $(GO_OUTPUT)
 
+.PHONY: launch-test-deps
+launch-test-deps:
+	docker-compose -f test-git-server/docker-compose.yaml up -d --build
+
+.PHONY: clean-test-deps
+clean-test-deps:
+	docker-compose -f test-git-server/docker-compose.yaml down
+	docker volume prune -f && docker system prune -f
+
 .PHONY: test
 test: test-unit
 

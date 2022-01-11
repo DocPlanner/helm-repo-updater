@@ -7,7 +7,7 @@ if [[ "$ACTION" == "create" ]]; then
     # Create git-server
     docker-compose -f test-git-server/docker-compose.yaml up -d --build git-server
     # Create repo in git-server
-    docker-compose -f test-git-server/docker-compose.yaml up --build create-repo
+    # docker-compose -f test-git-server/docker-compose.yaml up --build create-repo
 elif [[ "$ACTION" == "destroy" ]]; then
     # Delete git-server and create-repo containers
     docker-compose -f test-git-server/docker-compose.yaml up down
