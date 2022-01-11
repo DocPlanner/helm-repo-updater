@@ -34,6 +34,9 @@ jobs:
           eval $(ssh-agent)
           ssh-add test-git-server/private_keys/helm-repo-updater-test
 
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+            ssh-private-key: test-git-server/private_keys/helm-repo-updater-test
 
       - run: make build
 
