@@ -30,6 +30,7 @@ jobs:
 
       - name: add ssh key
         run: |
+          chmod 600 test-git-server/private_keys/helm-repo-updater-test
           eval $(ssh-agent)
           ssh-add test-git-server/private_keys/helm-repo-updater-test
 
