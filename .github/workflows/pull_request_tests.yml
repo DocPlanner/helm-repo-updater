@@ -33,8 +33,10 @@ jobs:
       - name: Configure SSH_PRIVATE_KEY
         run: |
           chmod 600 test-git-server/private_keys/helm-repo-updater-test
+          cat test-git-server/private_keys/helm-repo-updater-test
           eval $(ssh-agent)
           mkdir -p ~/.ssh/
+          cat ~/.ssh/known_hosts
           ssh-add test-git-server/private_keys/helm-repo-updater-test
           ssh-keyscan -p 2222 localhost >> ~/.ssh/known_hosts
 
