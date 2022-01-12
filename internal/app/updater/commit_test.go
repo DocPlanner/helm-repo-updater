@@ -3,14 +3,12 @@ package updater
 import (
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
-	"strings"
 	"testing"
 	"text/template"
 
 	"github.com/docplanner/helm-repo-updater/internal/app/git"
-	"gotest.tools/assert"
+	app_utils "github.com/docplanner/helm-repo-updater/internal/app/utils"
+	"gotest.tools/v3/assert"
 )
 
 const validGitCredentialsEmail = "test-user@docplanner.com"
@@ -26,27 +24,9 @@ const invalidGitRepoBranch = "developp"
 const validHelmAppName = "example-app"
 const validHelmAppFileToChange = validHelmAppName + "/values.yaml"
 
-func getRouteRelativePath(numRelativePath int, relativePath string) (*string, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-	parent := filepath.Dir(wd)
-	s := strings.Split(parent, "/")
-	s = s[:len(s)-numRelativePath]
-	finalPath := strings.Join(s, "/")
-	finalPath = finalPath + relativePath
-	return &finalPath, nil
-}
-
-func TestMain(m *testing.M) {
-	code := m.Run()
-	os.Exit(code)
-}
-
 func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 
-	sshPrivKeyRoute, err := getRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
+	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -95,7 +75,7 @@ func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 
 func TestUpdateApplicationDryRun(t *testing.T) {
 
-	sshPrivKeyRoute, err := getRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
+	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -144,7 +124,7 @@ func TestUpdateApplicationDryRun(t *testing.T) {
 
 func TestUpdateApplicationDryRunNoRepoURL(t *testing.T) {
 
-	sshPrivKeyRoute, err := getRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
+	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -190,7 +170,7 @@ func TestUpdateApplicationDryRunNoRepoURL(t *testing.T) {
 
 func TestUpdateApplicationDryRunInvalidGitRepo(t *testing.T) {
 
-	sshPrivKeyRoute, err := getRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
+	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -235,7 +215,7 @@ func TestUpdateApplicationDryRunInvalidGitRepo(t *testing.T) {
 
 func TestUpdateApplicationDryRunInvalidGitBranch(t *testing.T) {
 
-	sshPrivKeyRoute, err := getRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
+	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -281,7 +261,7 @@ func TestUpdateApplicationDryRunInvalidGitBranch(t *testing.T) {
 
 func TestUpdateApplicationDryRuNoBranch(t *testing.T) {
 
-	sshPrivKeyRoute, err := getRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
+	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -332,7 +312,7 @@ func TestUpdateApplicationDryRunWithGitMessage(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	sshPrivKeyRoute, err := getRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
+	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -382,7 +362,7 @@ func TestUpdateApplicationDryRunWithGitMessage(t *testing.T) {
 
 func TestUpdateApplicationDryRunInvalidKey(t *testing.T) {
 
-	sshPrivKeyRoute, err := getRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
+	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -441,7 +421,7 @@ func TestUpdateApplicationDryRunInvalidKey(t *testing.T) {
 
 func TestUpdateApplication(t *testing.T) {
 
-	sshPrivKeyRoute, err := getRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
+	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
 	if err != nil {
 		log.Fatal(err)
 	}

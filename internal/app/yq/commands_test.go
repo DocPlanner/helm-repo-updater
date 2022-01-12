@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
+	"gotest.tools/v3/assert"
 )
 
 const validKey = ".student-name"
@@ -18,6 +18,209 @@ const contentSimpleFile = "Hello World"
 type Student struct {
 	Name string `yaml:"student-name"`
 	Age  int8   `yaml:"student-age"`
+}
+
+func TestQueryFile(t *testing.T) {
+	yamlFile, err := writeSimpleYamlInTempFile()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer os.Remove(*yamlFile)
+
+	expectedResult := "Sagar"
+
+	result, err := QueryFile(validKey, *yamlFile)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.DeepEqual(t, result, expectedResult)
+}
+
+func TestQueryFileInNotExistentFile(t *testing.T) {
+	yamlFile, err := writeSimpleYamlInTempFile()
+	incorrectYamlFile := *yamlFile + "ts"
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer os.Remove(*yamlFile)
+
+	_, err = QueryFile(validKey, incorrectYamlFile)
+
+	expectedErrorMessage := fmt.Sprintf(
+		"open %s: no such file or directory",
+		incorrectYamlFile,
+	)
+
+	assert.Error(t, err, expectedErrorMessage)
+}
+
+func TestQueryFileIncorrectFile(t *testing.T) {
+	simpleTmpFile, err := writeSimpleTempFile()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = QueryFile(validKey, *simpleTmpFile)
+
+	expectedErrorMessage := fmt.Sprintf(
+		"returned non singular result for yq expression: '%s'",
+		validKey,
+	)
+
+	assert.Error(t, err, expectedErrorMessage)
+}
+
+func TestInplaceApplyInvalidKey(t *testing.T) {
+	yamlFile, err := writeSimpleYamlInTempFile()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer os.Remove(*yamlFile)
+
+	value := "Saga"
+	err = InplaceApply(invalidKey, value, *yamlFile)
+
+	expectedErrorMessage := fmt.Sprintf(
+		`key %s doesn't start with '.'`,
+		invalidKey,
+	)
+
+	assert.Error(t, err, expectedErrorMessage)
+}
+
+func TestInplaceApplyInexistentFile(t *testing.T) {
+	yamlFile, err := writeSimpleYamlInTempFile()
+
+	incorrectYamlFile := *yamlFile + "ts"
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer os.Remove(*yamlFile)
+
+	value := "Saga"
+	err = InplaceApply(validKey, value, incorrectYamlFile)
+
+	expectedErrorMessage := fmt.Sprintf(
+		"stat %s: no such file or directory",
+		incorrectYamlFile,
+	)
+
+	assert.Error(t, err, expectedErrorMessage)
+}
+
+func TestInplaceApply(t *testing.T) {
+	yamlFile, err := writeSimpleYamlInTempFile()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer os.Remove(*yamlFile)
+
+	key := ".student-name"
+	value := "Saga"
+
+	err = InplaceApply(key, value, *yamlFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	keyValueAfterInPlaceApply, err := ReadKey(key, *yamlFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.DeepEqual(t, value, *keyValueAfterInPlaceApply)
+}
+
+func TestReadKey(t *testing.T) {
+	yamlFile, err := writeSimpleYamlInTempFile()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer os.Remove(*yamlFile)
+
+	expectedKeyValue := "Sagar"
+
+	keyValue, err := ReadKey(validKey, *yamlFile)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.DeepEqual(t, *keyValue, expectedKeyValue)
+}
+
+func TestReadKeyInvalidKey(t *testing.T) {
+	yamlFile, err := writeSimpleYamlInTempFile()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer os.Remove(*yamlFile)
+
+	_, err = ReadKey(invalidKey, *yamlFile)
+
+	expectedErrorMessage := fmt.Sprintf(
+		"key %s doesn't start with '.'",
+		invalidKey,
+	)
+
+	assert.Error(t, err, expectedErrorMessage)
+}
+
+func TestReadKeyInexistentFile(t *testing.T) {
+	yamlFile, err := writeSimpleYamlInTempFile()
+
+	incorrectYamlFile := *yamlFile + "ts"
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer os.Remove(*yamlFile)
+
+	_, err = ReadKey(validKey, incorrectYamlFile)
+
+	expectedErrorMessage := fmt.Sprintf(
+		"open %s: no such file or directory",
+		incorrectYamlFile,
+	)
+
+	assert.Error(t, err, expectedErrorMessage)
+}
+
+func TestReadKeyIncorrectFile(t *testing.T) {
+	simpleTmpFile, err := writeSimpleTempFile()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer os.Remove(*simpleTmpFile)
+
+	_, err = ReadKey(validKey, *simpleTmpFile)
+
+	expectedErrorMessage := fmt.Sprintf(
+		"returned non singular result for yq expression: '%s'",
+		validKey,
+	)
+
+	assert.Error(t, err, expectedErrorMessage)
 }
 
 func createTempFile(tempFilePrefix string) (*os.File, error) {
@@ -52,14 +255,14 @@ func writeSimpleYamlInTempFile() (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Close the file
-	if err := tmpFile.Close(); err != nil {
-		return nil, err
-	}
 
 	tmpFileName := tmpFile.Name()
 	err = ioutil.WriteFile(tmpFileName, yamlData, 0644)
 	if err != nil {
+		return nil, err
+	}
+	// Close the file
+	if err := tmpFile.Close(); err != nil {
 		return nil, err
 	}
 	return &tmpFileName, nil
@@ -83,224 +286,4 @@ func writeSimpleTempFile() (*string, error) {
 		return nil, err
 	}
 	return &tmpFileName, nil
-}
-
-func TestMain(m *testing.M) {
-	code := m.Run()
-	os.Exit(code)
-}
-
-func TestQueryFile(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInTempFile()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer os.Remove(*yamlFile)
-
-	expectedResult := "Sagar"
-	result, err := QueryFile(validKey, *yamlFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if !(cmp.Equal(result, expectedResult)) {
-		log.Fatalf("result and expectedResult for query %s in file %s are not equal", validKey, *yamlFile)
-	}
-}
-
-func TestQueryFileInNotExistentFile(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInTempFile()
-	incorrectYamlFile := *yamlFile + "ts"
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer os.Remove(*yamlFile)
-
-	_, err = QueryFile(validKey, incorrectYamlFile)
-
-	expectedError := fmt.Errorf(
-		"open %s: no such file or directory",
-		incorrectYamlFile,
-	)
-	if err.Error() != expectedError.Error() {
-		t.Fatal("The error obtained is not the expected")
-	}
-}
-
-func TestQueryFileIncorrectFile(t *testing.T) {
-	simpleTmpFile, err := writeSimpleTempFile()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = QueryFile(validKey, *simpleTmpFile)
-
-	expectedError := fmt.Errorf(
-		"returned non singular result for yq expression: '%s'",
-		validKey,
-	)
-	if err.Error() != expectedError.Error() {
-		t.Fatal("The error obtained is not the expected")
-	}
-}
-
-func TestInplaceApplyInvalidKey(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInTempFile()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer os.Remove(*yamlFile)
-
-	value := "Saga"
-	err = InplaceApply(invalidKey, value, *yamlFile)
-
-	expectedError := fmt.Errorf(
-		"key %s doesn't start with '.'",
-		invalidKey,
-	)
-	if err.Error() != expectedError.Error() {
-		t.Fatal("The error obtained is not the expected")
-	}
-}
-
-func TestInplaceApplyInexistentFile(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInTempFile()
-
-	incorrectYamlFile := *yamlFile + "ts"
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer os.Remove(*yamlFile)
-
-	value := "Saga"
-	err = InplaceApply(validKey, value, incorrectYamlFile)
-
-	expectedError := fmt.Errorf(
-		"stat %s: no such file or directory",
-		incorrectYamlFile,
-	)
-	if err.Error() != expectedError.Error() {
-		t.Fatalf("The error obtained %s is not the expected %s", err.Error(), expectedError.Error())
-	}
-}
-
-func TestInplaceApply(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInTempFile()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer os.Remove(*yamlFile)
-
-	key := ".student-name"
-	value := "Saga"
-
-	err = InplaceApply(key, value, *yamlFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	keyValueAfterInPlaceApply, err := ReadKey(key, *yamlFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if !(cmp.Equal(value, *keyValueAfterInPlaceApply)) {
-		log.Fatalf("value for key %s is not the expected after change value to %s in the file %s", key, value, *yamlFile)
-	}
-}
-
-func TestReadKey(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInTempFile()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer os.Remove(*yamlFile)
-
-	expectedKeyValue := "Sagar"
-
-	keyValue, err := ReadKey(validKey, *yamlFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if !(cmp.Equal(*keyValue, expectedKeyValue)) {
-		log.Fatalf("obtained value %s for key %s and expected value %s are not equal", *keyValue, validKey, expectedKeyValue)
-	}
-}
-
-func TestReadKeyInvalidKey(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInTempFile()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer os.Remove(*yamlFile)
-
-	_, err = ReadKey(invalidKey, *yamlFile)
-
-	expectedError := fmt.Errorf(
-		"key %s doesn't start with '.'",
-		invalidKey,
-	)
-
-	if err.Error() != expectedError.Error() {
-		t.Fatalf("The error obtained %s is not the expected %s", err.Error(), expectedError.Error())
-	}
-}
-
-func TestReadKeyInexistentFile(t *testing.T) {
-	yamlFile, err := writeSimpleYamlInTempFile()
-
-	incorrectYamlFile := *yamlFile + "ts"
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer os.Remove(*yamlFile)
-
-	_, err = ReadKey(validKey, incorrectYamlFile)
-
-	expectedError := fmt.Errorf(
-		"open %s: no such file or directory",
-		incorrectYamlFile,
-	)
-
-	if err.Error() != expectedError.Error() {
-		t.Fatalf("The error obtained %s is not the expected %s", err.Error(), expectedError.Error())
-	}
-}
-
-func TestReadKeyIncorrectFile(t *testing.T) {
-	simpleTmpFile, err := writeSimpleTempFile()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer os.Remove(*simpleTmpFile)
-
-	_, err = ReadKey(validKey, *simpleTmpFile)
-
-	expectedError := fmt.Errorf(
-		"returned non singular result for yq expression: '%s'",
-		validKey,
-	)
-	if err.Error() != expectedError.Error() {
-		t.Fatalf("The error obtained %s is not the expected %s", err.Error(), expectedError.Error())
-	}
 }

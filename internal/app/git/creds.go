@@ -15,25 +15,23 @@ type Credentials struct {
 }
 
 // NewCreds returns the credentials for the given repo url.
-func (g Credentials) NewCreds(repoURL string) (git.Creds, error) {
+func (g Credentials) NewGitCreds(repoURL string) (git.Creds, error) {
 	if ok, _ := git.IsSSHURL(repoURL); ok {
 		if g.SSHPrivKey != "" {
 			return git.NewSSHCreds(g.SSHPrivKey, "", true), nil
-		} else {
-			return nil, fmt.Errorf(
-				"sshPrivKey not provided for authenticatication to repository %s",
-				repoURL,
-			)
 		}
+		return nil, fmt.Errorf(
+			"sshPrivKey not provided for authenticatication to repository %s",
+			repoURL,
+		)
 	} else if git.IsHTTPSURL(repoURL) {
 		if g.Username != "" && g.Password != "" {
 			return git.NewHTTPSCreds(g.Username, g.Password, "", "", true, ""), nil
-		} else {
-			return nil, fmt.Errorf(
-				"no value provided for username and password for authentication to repository %s",
-				repoURL,
-			)
 		}
+		return nil, fmt.Errorf(
+			"no value provided for username and password for authentication to repository %s",
+			repoURL,
+		)
 	}
 
 	return nil, fmt.Errorf("unknown repository type for git repository URL %s", repoURL)
