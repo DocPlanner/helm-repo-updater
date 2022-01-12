@@ -28,20 +28,10 @@ jobs:
         with:
           go-version: 1.17
 
-      # - name: Get SSH_PRIVATE_KEY
-      #   id: get_ssh_private_key
-      #   run: |
-      #     echo SSH_PRIVATE_KEY=$(cat test-git-server/private_keys/helm-repo-updater-test)>> $GITHUB_ENV
-
-      # - name: Configure SSH_PRIVATE_KEY
-      #   uses: webfactory/ssh-agent@v0.5.4
-      #   with:
-      #     ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - name: Configure SSH_PRIVATE_KEY
-        run: |
-          chmod 600 test-git-server/private_keys/helm-repo-updater-test
-          ssh-add test-git-server/private_keys/helm-repo-updater-test
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - run: make build
 
