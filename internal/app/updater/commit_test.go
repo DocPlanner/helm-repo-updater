@@ -3,6 +3,7 @@ package updater
 import (
 	"fmt"
 	"log"
+	"os"
 	"testing"
 	"text/template"
 
@@ -31,10 +32,19 @@ func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 		log.Fatal(err)
 	}
 
+	dat, err := os.ReadFile(*sshPrivKeyRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sshPrivKeyData := string(dat)
+
+	fmt.Printf("sshPrivKeyData: \n%s\n", sshPrivKeyData)
+
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: *sshPrivKeyRoute,
+		SSHPrivKey: sshPrivKeyData,
 	}
 
 	gConf := git.Conf{
