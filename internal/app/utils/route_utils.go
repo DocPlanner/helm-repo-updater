@@ -19,5 +19,11 @@ func GetRouteRelativePath(numRelativePath int, relativePath string) (*string, er
 	finalPath := strings.Join(s, "/")
 	finalPath = finalPath + relativePath
 	fmt.Printf("finalPath: %s\n", finalPath)
+	_, err = os.Stat(finalPath)
+	if err != nil {
+		fmt.Printf("Directory doesn't %s exist", finalPath)
+	} else {
+		fmt.Printf("Directory %s exist", finalPath)
+	}
 	return &finalPath, nil
 }
