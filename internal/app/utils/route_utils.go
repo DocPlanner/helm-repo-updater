@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,5 +18,6 @@ func GetRouteRelativePath(numRelativePath int, relativePath string) (*string, er
 	s = s[:len(s)-numRelativePath]
 	finalPath := strings.Join(s, "/")
 	finalPath = finalPath + relativePath
+	fmt.Printf("finalPath: %s\n", finalPath)
 	return &finalPath, nil
 }
