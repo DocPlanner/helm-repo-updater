@@ -18,7 +18,7 @@ clean:
 
 .PHONY: launch-test-deps
 launch-test-deps:
-	docker-compose -f test-git-server/docker-compose.yaml up -d --build
+	docker-compose -f test-git-server/docker-compose.yaml up -d
 
 .PHONY: clean-test-deps
 clean-test-deps:
