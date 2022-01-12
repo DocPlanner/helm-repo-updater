@@ -30,27 +30,11 @@ jobs:
         
       - name: Launch git-server
         run: make launch-test-deps
-      - name: Configure SSH_PRIVATE_KEY
+      - name: Configure test known_hosts
         run: |
           chmod 600 test-git-server/private_keys/helm-repo-updater-test
-          eval $(ssh-agent)
           mkdir -p ~/.ssh/
-          ssh-add test-git-server/private_keys/helm-repo-updater-test
           ssh-keyscan -p 2222 localhost >> ~/.ssh/known_hosts
-      - name: Check values of private key
-        run: |
-          cat test-git-server/private_keys/helm-repo-updater-test
-          cat ~/.ssh/known_hosts
-
-      # - name: Get SSH_PRIVATE_KEY
-      #   id: get-ssh-private-key
-      #   run: |
-      #     echo "::set-output name=SSH_PRIVATE_KEY::$(cat test-git-server/private_keys/helm-repo-updater-test)"
-
-      # - name: Configure SSH_PRIVATE_KEY
-      #   uses: webfactory/ssh-agent@v0.5.4
-      #   with:
-      #     ssh-private-key: ${{ steps.get-ssh-private-key.outputs.get-ssh-private-key }}
 
       - run: make build
 

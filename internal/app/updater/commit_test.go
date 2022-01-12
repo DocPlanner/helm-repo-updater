@@ -25,6 +25,15 @@ const invalidGitRepoBranch = "developp"
 const validHelmAppName = "example-app"
 const validHelmAppFileToChange = validHelmAppName + "/values.yaml"
 
+func loadSSHKeyPath(sshPrivKeyPath string) (string, error) {
+	dat, err := os.ReadFile(sshPrivKeyPath)
+	if err != nil {
+		return "", err
+	}
+
+	return string(dat), nil
+}
+
 func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 
 	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
@@ -32,14 +41,10 @@ func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	dat, err := os.ReadFile(*sshPrivKeyRoute)
+	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	sshPrivKeyData := string(dat)
-
-	fmt.Printf("sshPrivKeyData: \n%s\n", sshPrivKeyData)
 
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
@@ -90,10 +95,15 @@ func TestUpdateApplicationDryRun(t *testing.T) {
 		log.Fatal(err)
 	}
 
+	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: *sshPrivKeyRoute,
+		SSHPrivKey: sshPrivKeyData,
 	}
 
 	gConf := git.Conf{
@@ -139,10 +149,15 @@ func TestUpdateApplicationDryRunNoRepoURL(t *testing.T) {
 		log.Fatal(err)
 	}
 
+	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: *sshPrivKeyRoute,
+		SSHPrivKey: sshPrivKeyData,
 	}
 
 	gConf := git.Conf{
@@ -185,10 +200,15 @@ func TestUpdateApplicationDryRunInvalidGitRepo(t *testing.T) {
 		log.Fatal(err)
 	}
 
+	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: *sshPrivKeyRoute,
+		SSHPrivKey: sshPrivKeyData,
 	}
 
 	gConf := git.Conf{
@@ -230,10 +250,15 @@ func TestUpdateApplicationDryRunInvalidGitBranch(t *testing.T) {
 		log.Fatal(err)
 	}
 
+	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: *sshPrivKeyRoute,
+		SSHPrivKey: sshPrivKeyData,
 	}
 
 	gConf := git.Conf{
@@ -276,10 +301,15 @@ func TestUpdateApplicationDryRuNoBranch(t *testing.T) {
 		log.Fatal(err)
 	}
 
+	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: *sshPrivKeyRoute,
+		SSHPrivKey: sshPrivKeyData,
 	}
 
 	gConf := git.Conf{
@@ -327,10 +357,15 @@ func TestUpdateApplicationDryRunWithGitMessage(t *testing.T) {
 		log.Fatal(err)
 	}
 
+	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: *sshPrivKeyRoute,
+		SSHPrivKey: sshPrivKeyData,
 	}
 
 	gConf := git.Conf{
@@ -377,10 +412,15 @@ func TestUpdateApplicationDryRunInvalidKey(t *testing.T) {
 		log.Fatal(err)
 	}
 
+	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: *sshPrivKeyRoute,
+		SSHPrivKey: sshPrivKeyData,
 	}
 
 	gConf := git.Conf{
@@ -436,10 +476,15 @@ func TestUpdateApplication(t *testing.T) {
 		log.Fatal(err)
 	}
 
+	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: *sshPrivKeyRoute,
+		SSHPrivKey: sshPrivKeyData,
 	}
 
 	gConf := git.Conf{
