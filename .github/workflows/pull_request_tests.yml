@@ -28,17 +28,14 @@ jobs:
         with:
           go-version: 1.17
 
-      - name: Set SSH_PRIVATE_KEY
+      - name: Get SSH_PRIVATE_KEY
+        id: get_ssh_private_key
         run: |
-          echo "::set-output name=SSH_PRIVATE_KEY::$(cat test-git-server/private_keys/helm-repo-updater-test)"
-        id: set-ssh-private-key
-
-      - name: Test SSH_PRIVATE_KEY output
-        run: echo ${{ steps.set-ssh-private-key.outputs.SSH_PRIVATE_KEY }}
+          echo SSH_PRIVATE_KEY=$(cat test-git-server/private_keys/helm-repo-updater-test)>> $GITHUB_ENV
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
-          ssh-private-key: ${{ steps.set-ssh-private-key.outputs.SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ env.SSH_PRIVATE_KEY }}
 
       - run: make build
 
