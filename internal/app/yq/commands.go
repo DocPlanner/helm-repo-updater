@@ -119,14 +119,15 @@ func InplaceApply(key, value string, targetFile string) error {
 }
 
 // ReadKey reads the value of the given key from the given file
-func ReadKey(key string, targetFile string) string {
+func ReadKey(key string, targetFile string) (*string, error) {
 	if !strings.HasPrefix(key, ".") {
-		return ""
+		return nil, fmt.Errorf("key %s doesn't start with '.'", key)
 	}
 	query, err := QueryFile(key, targetFile)
 	if err != nil {
-		return ""
+		return nil, err
 	}
 	str := fmt.Sprintf("%v", query)
-	return strings.TrimSpace(str)
+	keyValue := strings.TrimSpace(str)
+	return &keyValue, nil
 }

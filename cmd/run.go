@@ -103,8 +103,9 @@ func runImageUpdater(cfg updater.HelmUpdaterConfig) error {
 	err := func(cfg updater.HelmUpdaterConfig) error {
 		log.Debugf("Processing application %s in directory %s", cfg.AppName, cfg.File)
 
-		err := updater.UpdateApplication(cfg, syncState)
+		_, err := updater.UpdateApplication(cfg, syncState)
 		if err != nil {
+			fmt.Printf("err is %v\n", err)
 			return err
 		}
 

@@ -28,4 +28,3 @@ func (state *SyncIterationState) GetRepositoryLock(repository string) *sync.Mute
 
 	return lock
 }
-
