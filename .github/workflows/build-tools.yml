@@ -3,9 +3,9 @@ on:
   push:
     branches:
       - develop
-      - feature/improve-ci
-    # paths:
-    #   - 'tools/**'
+    paths:
+      - 'tools/**'
+
 jobs:
   build-tools-ci:
     name: build
