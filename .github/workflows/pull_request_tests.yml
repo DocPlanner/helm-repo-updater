@@ -1,20 +1,11 @@
 name: Tests
 
-# on:
-#   pull_request:
-#     types:
-#       - opened
-#       - reopened
-#       - synchronize
-
 on:
-  workflow_run:
-    workflows:
-      - "build-tools-CI"
-    branches:
-      - '*'
+  pull_request:
     types:
-      - completed
+      - opened
+      - reopened
+      - synchronize
 
 jobs:
   lint:
