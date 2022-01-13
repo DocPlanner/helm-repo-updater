@@ -21,7 +21,11 @@ jobs:
   tests:
     name: Tests
     runs-on: ubuntu-latest
-    container: ghcr.io/docplanner/helm-repo-updater/build-tools:develop
+    container: 
+      image: ghcr.io/docplanner/helm-repo-updater/build-tools:develop
+      credentials:
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
     # Service containers to run with `container-job`
     services:
       # Label used to access the service container
@@ -29,6 +33,9 @@ jobs:
         image: ghcr.io/docplanner/helm-repo-updater/git-repo-server:develop
         ports:
           - 2222:22
+        credentials:
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v2
 
