@@ -41,7 +41,7 @@ jobs:
 
       - run: make build
 
-      - name: run tests
-        run: go test  -covermode=atomic -coverpkg=./... ./...
+      - name: run test coverage
+        run: make test-coverage
         env:
           isCI: true

@@ -24,7 +24,9 @@ clean:
 
 .PHONY: launch-test-deps
 launch-test-deps:
+ifndef isCI
 	docker-compose -f test-git-server/docker-compose.yaml up -d
+endif
 
 .PHONY: clean-test-deps
 clean-test-deps:
@@ -35,7 +37,7 @@ clean-test-deps:
 test: test-unit
 
 .PHONY: test-benchmark
-test-benchmark: launch-test-deps
+test-benchmark: isCIlaunch-test-deps
 	$(GO) test ${GO_TEST_DEFAULT_ARG} -cpu 1,2,4,8 -benchmem -bench .
 
 .PHONY: test-unit
