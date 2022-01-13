@@ -13,6 +13,10 @@ RUN mkdir /git-server/keys \
   && echo git:12345 | chpasswd \
   && mkdir /home/git/.ssh
 
+
+# Create repos folder
+RUN mkdir /git-server/repos/
+
 # This is a login shell for SSH accounts to provide restricted Git access.
 # It permits execution only of server-side Git commands implementing the
 # pull/push functionality, plus custom commands present in a subdirectory
@@ -25,6 +29,9 @@ RUN chmod -R +x /home/git/git-shell-commands
 COPY test-git-server/git-server/sshd_config /etc/ssh/sshd_config
 COPY test-git-server/git-server/create_repo.sh create_repo.sh
 COPY test-git-server/git-server/start.sh start.sh
+
+# copy predefined ssh public key
+COPY test-git-server/repo_keys/id_rsa.pub /git-server/keys/
 
 # copy predefined ssh private key
 COPY test-git-server/private_keys/helm-repo-updater-test /etc/ssh
