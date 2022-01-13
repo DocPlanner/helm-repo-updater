@@ -23,16 +23,16 @@ jobs:
     runs-on: ubuntu-latest
     container: 
       image: ghcr.io/docplanner/helm-repo-updater/build-tools:develop
+      # TODO: Remind to delete this part when we make public the repository 
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.CR_PAT }}
-    # Service containers to run with `container-job`
     services:
-      # Label used to access the service container
       git-server:
         image: ghcr.io/docplanner/helm-repo-updater/git-repo-server:develop
         ports:
           - 2222:22
+        # TODO: Remind to delete this part when we make public the repository 
         credentials:
           username: ${{ github.actor }}
           password: ${{ secrets.CR_PAT }}
