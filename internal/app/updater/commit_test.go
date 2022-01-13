@@ -16,25 +16,17 @@ const validGitCredentialsEmail = "test-user@docplanner.com"
 const validGitCredentialsUsername = "test-user"
 
 // TODO: Remove after CI tests docker layer name
-const validGitRepoHost = "ssh://git@git-server"
+const SSHRepoPrefix = "ssh://git@"
+const SSHRepoLocalHostname = SSHRepoPrefix + "localhost:2222"
+const SSHRepoCIHostname = SSHRepoPrefix + "git-server"
 const validGitRepoRoute = "/git-server/repos/test-repo.git"
-const validGitRepoURL = validGitRepoHost + validGitRepoRoute
 const invalidGitRepoRoute = "/git-server/repos/test-r"
-const invalidGitRepoURL = validGitRepoHost + invalidGitRepoRoute
 const validSSHPrivKeyRelativeRoute = "/test-git-server/private_keys/helm-repo-updater-test"
 const validGitRepoBranch = "develop"
 const invalidGitRepoBranch = "developp"
 const validHelmAppName = "example-app"
 const validHelmAppFileToChange = validHelmAppName + "/values.yaml"
-
-func loadSSHKeyPath(sshPrivKeyPath string) (string, error) {
-	dat, err := os.ReadFile(sshPrivKeyPath)
-	if err != nil {
-		return "", err
-	}
-
-	return string(dat), nil
-}
+const ciDiscoveryEnvironment = "isCI"
 
 func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 
@@ -53,6 +45,8 @@ func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 		Username:   validGitCredentialsUsername,
 		SSHPrivKey: sshPrivKeyData,
 	}
+
+	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
 
 	gConf := git.Conf{
 		RepoURL: validGitRepoURL,
@@ -107,6 +101,8 @@ func TestUpdateApplicationDryRun(t *testing.T) {
 		Username:   validGitCredentialsUsername,
 		SSHPrivKey: sshPrivKeyData,
 	}
+
+	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
 
 	gConf := git.Conf{
 		RepoURL: validGitRepoURL,
@@ -213,6 +209,8 @@ func TestUpdateApplicationDryRunInvalidGitRepo(t *testing.T) {
 		SSHPrivKey: sshPrivKeyData,
 	}
 
+	invalidGitRepoURL := getSSHRepoHostnameAndPort() + invalidGitRepoRoute
+
 	gConf := git.Conf{
 		RepoURL: invalidGitRepoURL,
 		Branch:  validGitRepoBranch,
@@ -262,6 +260,8 @@ func TestUpdateApplicationDryRunInvalidGitBranch(t *testing.T) {
 		Username:   validGitCredentialsUsername,
 		SSHPrivKey: sshPrivKeyData,
 	}
+
+	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
 
 	gConf := git.Conf{
 		RepoURL: validGitRepoURL,
@@ -313,6 +313,8 @@ func TestUpdateApplicationDryRuNoBranch(t *testing.T) {
 		Username:   validGitCredentialsUsername,
 		SSHPrivKey: sshPrivKeyData,
 	}
+
+	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
 
 	gConf := git.Conf{
 		RepoURL: validGitRepoURL,
@@ -370,6 +372,8 @@ func TestUpdateApplicationDryRunWithGitMessage(t *testing.T) {
 		SSHPrivKey: sshPrivKeyData,
 	}
 
+	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
+
 	gConf := git.Conf{
 		RepoURL: validGitRepoURL,
 		Branch:  validGitRepoBranch,
@@ -424,6 +428,8 @@ func TestUpdateApplicationDryRunInvalidKey(t *testing.T) {
 		Username:   validGitCredentialsUsername,
 		SSHPrivKey: sshPrivKeyData,
 	}
+
+	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
 
 	gConf := git.Conf{
 		RepoURL: validGitRepoURL,
@@ -489,6 +495,8 @@ func TestUpdateApplication(t *testing.T) {
 		SSHPrivKey: sshPrivKeyData,
 	}
 
+	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
+
 	gConf := git.Conf{
 		RepoURL: validGitRepoURL,
 		Branch:  validGitRepoBranch,
@@ -521,4 +529,21 @@ func TestUpdateApplication(t *testing.T) {
 		log.Fatal(err)
 	}
 	assert.DeepEqual(t, *apps, changeEntries)
+}
+
+func getSSHRepoHostnameAndPort() string {
+	_, isCI := os.LookupEnv(ciDiscoveryEnvironment)
+	if !isCI {
+		return SSHRepoLocalHostname
+	}
+	return SSHRepoCIHostname
+}
+
+func loadSSHKeyPath(sshPrivKeyPath string) (string, error) {
+	dat, err := os.ReadFile(sshPrivKeyPath)
+	if err != nil {
+		return "", err
+	}
+
+	return string(dat), nil
 }
