@@ -30,8 +30,6 @@ jobs:
     services:
       git-server:
         image: ghcr.io/docplanner/helm-repo-updater/git-repo-server:develop
-        ports:
-          - 2222:22
         # TODO: Remind to delete this part when we make public the repository 
         credentials:
           username: ${{ github.actor }}
@@ -41,7 +39,6 @@ jobs:
 
       - run: make build
 
-      - name: run test coverage
-        run: make test-coverage
+      - run: make test-coverage
         env:
           isCI: true
