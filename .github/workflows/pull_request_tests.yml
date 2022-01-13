@@ -25,7 +25,7 @@ jobs:
       image: ghcr.io/docplanner/helm-repo-updater/build-tools:develop
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ secrets.CR_PAT }}
     # Service containers to run with `container-job`
     services:
       # Label used to access the service container
@@ -35,7 +35,7 @@ jobs:
           - 2222:22
         credentials:
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.CR_PAT }}
     steps:
       - uses: actions/checkout@v2
 
