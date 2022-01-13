@@ -12,6 +12,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	GitCommitUser  = "git-commit-user"
+	GitCommitEmail = "git-commit-email"
+	GitPassword    = "git-password"
+	GitBranch      = "git-branch"
+	GitRepoUrl     = "git-repo-url"
+	GitFile        = "git-file"
+	GitDir         = "git-dir"
+
+	AppName       = "app-name"
+	SshPrivateKey = "ssh-private-key"
+	DryRun        = "dry-run"
+	LogLevel      = "logLevel"
+	HelmKeyValues = "helm-key-values"
+)
+
 var cfg = updater.HelmUpdaterConfig{}
 
 // runCmd represents the run command
@@ -19,18 +35,18 @@ var runCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Runs the helm repo updater",
 	Run: func(cmd *cobra.Command, args []string) {
-		gitUser, _ := cmd.Flags().GetString("git-commit-user")
-		gitEmail, _ := cmd.Flags().GetString("git-commit-email")
-		gitPass, _ := cmd.Flags().GetString("git-password")
-		gitBranch, _ := cmd.Flags().GetString("git-branch")
-		gitRepoURL, _ := cmd.Flags().GetString("git-repo-url")
-		gitFile, _ := cmd.Flags().GetString("git-file")
-		gitDir, _ := cmd.Flags().GetString("git-dir")
-		sshKey, _ := cmd.Flags().GetString("ssh-private-key")
-		appName, _ := cmd.Flags().GetString("app-name")
-		logLevel, _ := cmd.Flags().GetString("loglevel")
-		dryRun, _ := cmd.Flags().GetBool("dry-run")
-		helmKVs, _ := cmd.Flags().GetStringToString("helm-key-values")
+		gitUser, _ := cmd.Flags().GetString(GitCommitUser)
+		gitEmail, _ := cmd.Flags().GetString(GitCommitEmail)
+		gitPass, _ := cmd.Flags().GetString(GitPassword)
+		gitBranch, _ := cmd.Flags().GetString(GitBranch)
+		gitRepoURL, _ := cmd.Flags().GetString(GitRepoUrl)
+		gitFile, _ := cmd.Flags().GetString(GitFile)
+		gitDir, _ := cmd.Flags().GetString(GitDir)
+		sshKey, _ := cmd.Flags().GetString(SshPrivateKey)
+		appName, _ := cmd.Flags().GetString(AppName)
+		logLevel, _ := cmd.Flags().GetString(LogLevel)
+		dryRun, _ := cmd.Flags().GetBool(DryRun)
+		helmKVs, _ := cmd.Flags().GetStringToString(HelmKeyValues)
 
 		if err := log.SetLogLevel(logLevel); err != nil {
 			fmt.Println(err)
@@ -39,10 +55,10 @@ var runCmd = &cobra.Command{
 		}
 
 		if len(helmKVs) == 0 {
-			err := cmd.Help()
-			if err != nil {
+			if err := cmd.Help(); err != nil {
 				return
 			}
+
 			os.Exit(1)
 		}
 
@@ -86,11 +102,9 @@ var runCmd = &cobra.Command{
 			GitConf:        gitConf,
 		}
 
-		err := runImageUpdater(cfg)
-		if err != nil {
+		if err := runImageUpdater(cfg); err != nil {
 			log.Errorf("Error: %v", err)
 		}
-
 	},
 }
 
@@ -121,25 +135,25 @@ func runImageUpdater(cfg updater.HelmUpdaterConfig) error {
 func init() {
 	rootCmd.AddCommand(runCmd)
 
-	runCmd.Flags().String("git-commit-user", "", "Username to use for Git commits")
-	runCmd.Flags().String("git-commit-email", "", "E-Mail address to use for Git commits")
-	runCmd.Flags().String("git-password", "", "Password for github user")
-	runCmd.Flags().String("git-branch", "develop", "branch")
-	runCmd.Flags().String("git-repo-url", "", "git repo url")
-	runCmd.Flags().String("git-file", "", "file eg. values.yaml")
-	runCmd.Flags().String("git-dir", "", "file eg. /production/charts/")
-	runCmd.Flags().String("app-name", "", "app name")
-	runCmd.Flags().String("ssh-private-key", "", "ssh private key (only using ")
-	runCmd.Flags().Bool("dry-run", false, "run in dry-run mode. If set to true, do not perform any changes")
-	runCmd.Flags().String("loglevel", "info", "set the loglevel to one of trace|debug|info|warn|error")
-	runCmd.Flags().StringToString("helm-key-values", nil, "helm key-values sets")
+	runCmd.Flags().String(GitCommitUser, "", "Username to use for Git commits")
+	runCmd.Flags().String(GitCommitEmail, "", "E-Mail address to use for Git commits")
+	runCmd.Flags().String(GitPassword, "", "Password for github user")
+	runCmd.Flags().String(GitBranch, "develop", "branch")
+	runCmd.Flags().String(GitRepoUrl, "", "git repo url")
+	runCmd.Flags().String(GitFile, "", "file eg. values.yaml")
+	runCmd.Flags().String(GitDir, "", "file eg. /production/charts/")
+	runCmd.Flags().String(AppName, "", "app name")
+	runCmd.Flags().String(SshPrivateKey, "", "ssh private key (only using ")
+	runCmd.Flags().Bool(DryRun, false, "run in dry-run mode. If set to true, do not perform any changes")
+	runCmd.Flags().String(LogLevel, "info", "set the loglevel to one of trace|debug|info|warn|error")
+	runCmd.Flags().StringToString(HelmKeyValues, nil, "helm key-values sets")
 
-	_ = runCmd.MarkFlagRequired("git-commit-user")
-	_ = runCmd.MarkFlagRequired("git-commit-email")
-	_ = runCmd.MarkFlagRequired("git-repo-url")
-	_ = runCmd.MarkFlagRequired("git-file")
-	_ = runCmd.MarkFlagRequired("git-dir")
-	_ = runCmd.MarkFlagRequired("helm-key-values")
-	_ = runCmd.MarkFlagRequired("app-name")
+	_ = runCmd.MarkFlagRequired(GitCommitUser)
+	_ = runCmd.MarkFlagRequired(GitCommitEmail)
+	_ = runCmd.MarkFlagRequired(GitRepoUrl)
+	_ = runCmd.MarkFlagRequired(GitFile)
+	_ = runCmd.MarkFlagRequired(GitDir)
+	_ = runCmd.MarkFlagRequired(HelmKeyValues)
+	_ = runCmd.MarkFlagRequired(AppName)
 
 }
