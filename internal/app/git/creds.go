@@ -14,25 +14,61 @@ type Credentials struct {
 	SSHPrivKey string
 }
 
-// NewCreds returns the credentials for the given repo url.
-func (g Credentials) NewGitCreds(repoURL string) (git.Creds, error) {
-	if ok, _ := git.IsSSHURL(repoURL); ok {
-		if g.SSHPrivKey != "" {
-			return git.NewSSHCreds(g.SSHPrivKey, "", true), nil
-		}
-		return nil, fmt.Errorf(
-			"sshPrivKey not provided for authenticatication to repository %s",
-			repoURL,
-		)
-	} else if git.IsHTTPSURL(repoURL) {
-		if g.Username != "" && g.Password != "" {
-			return git.NewHTTPSCreds(g.Username, g.Password, "", "", true, ""), nil
-		}
-		return nil, fmt.Errorf(
-			"no value provided for username and password for authentication to repository %s",
-			repoURL,
-		)
+// NewGitCreds returns the credentials for the given repo url.
+func (c Credentials) NewGitCreds(repoURL string) (git.Creds, error) {
+	if isSshUrl(repoURL) {
+		return c.fromSsh(repoURL)
 	}
 
-	return nil, fmt.Errorf("unknown repository type for git repository URL %s", repoURL)
+	if isHttpsUrl(repoURL) {
+		return c.fromHttps(repoURL)
+	}
+
+	return nil, unknownRepositoryType(repoURL)
+}
+
+func isSshUrl(repoUrl string) bool {
+	ok, _ := git.IsSSHURL(repoUrl)
+
+	return ok
+}
+
+func isHttpsUrl(repoUrl string) bool {
+	return git.IsHTTPSURL(repoUrl)
+}
+
+func (c Credentials) fromSsh(repoUrl string) (git.Creds, error) {
+	if c.allowsSshAuth() {
+		return git.NewSSHCreds(c.SSHPrivKey, "", true), nil
+	}
+
+	return nil, sshPrivateKeyNotProvided(repoUrl)
+}
+
+func (c Credentials) fromHttps(repoURL string) (git.Creds, error) {
+	if c.allowsHttpsAuth() {
+		return git.NewHTTPSCreds(c.Username, c.Password, "", "", true, ""), nil
+	}
+
+	return nil, httpsUserAndPasswordNotProvided(repoURL)
+}
+
+func (c Credentials) allowsSshAuth() bool {
+	return c.SSHPrivKey != ""
+}
+
+func (c Credentials) allowsHttpsAuth() bool {
+	return c.Username != "" && c.Password != ""
+}
+
+func sshPrivateKeyNotProvided(repoUrl string) error {
+	return fmt.Errorf("sshPrivKey not provided for authenticatication to repository %s", repoUrl)
+}
+
+func httpsUserAndPasswordNotProvided(repoUrl string) error {
+	return fmt.Errorf("no value provided for username and password for authentication to repository %s", repoUrl)
+}
+
+func unknownRepositoryType(repoUrl string) error {
+	return fmt.Errorf("unknown repository type for git repository URL %s", repoUrl)
 }
