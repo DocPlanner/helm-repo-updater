@@ -8,8 +8,8 @@ GO_TEST_DEFAULT_ARG         = -v ./internal/...
 IMAGE_REGISTRY ?= ghcr.io
 IMAGE_REPO     ?= docplanner
 
-IMAGE_BUILD_TOOLS = $(IMAGE_REGISTRY)/$(IMAGE_REPO)/build-tools:develop
-IMAGE_GIT_REPO_SERVER_TOOL = $(IMAGE_REGISTRY)/$(IMAGE_REPO)/git-repo-server:develop
+IMAGE_BUILD_TOOLS = $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater/build-tools:develop
+IMAGE_GIT_REPO_SERVER_TOOL = $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater/git-repo-server:develop
 
 .PHONY: build
 build: clean
