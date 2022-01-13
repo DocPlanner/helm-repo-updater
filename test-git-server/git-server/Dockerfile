@@ -2,8 +2,6 @@ FROM alpine:3.15.0
 
 LABEL maintainer="Docplanner <devops@docplanner.com>"
 
-RUN whoami
-
 RUN apk add --no-cache openssh git
 
 WORKDIR /git-server/

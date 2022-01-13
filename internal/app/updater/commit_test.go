@@ -16,7 +16,7 @@ const validGitCredentialsEmail = "test-user@docplanner.com"
 const validGitCredentialsUsername = "test-user"
 
 // TODO: Remove after CI tests docker layer name
-const validGitRepoHost = "ssh://git@git-server"
+const validGitRepoHost = "git@git-server"
 const validGitRepoRoute = "/git-server/repos/test-repo.git"
 const validGitRepoURL = validGitRepoHost + validGitRepoRoute
 const invalidGitRepoRoute = "/git-server/repos/test-r"
