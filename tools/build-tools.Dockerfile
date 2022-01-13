@@ -36,4 +36,4 @@ COPY test-git-server/private_keys/helm-repo-updater-test .
 RUN mkdir -p ~/.ssh
 RUN chmod 600 ./helm-repo-updater-test
 
-RUN echo "[localhost]:2222 $(ssh-keygen -f ./helm-repo-updater-test -y | cut -d' ' -f-2)" >> ~/.ssh/known_hosts
+RUN echo "git-server $(ssh-keygen -f ./helm-repo-updater-test -y | cut -d' ' -f-2)" >> ~/.ssh/known_hosts
