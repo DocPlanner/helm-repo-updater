@@ -47,6 +47,7 @@ jobs:
 
       - name: try clone repository
         run: |
+          eval $(ssh-agent)
           ssh-add test-git-server/private_keys/helm-repo-updater-test
           git clone ssh://git@git-server/git-server/repos/test-repo.git /tmp -v
 
