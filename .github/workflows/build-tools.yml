@@ -7,8 +7,8 @@ on:
     # paths:
     #   - 'tools/**'
 jobs:
-  validate:
-    name: Validate
+  build-tools-ci:
+    name: build
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
