@@ -50,7 +50,7 @@ jobs:
           eval $(ssh-agent)
           chmod 600 test-git-server/private_keys/helm-repo-updater-test
           ssh-add test-git-server/private_keys/helm-repo-updater-test
-          git clone ssh://git@git-server/git-server/repos/test-repo.git /tmp -v
+          git clone ssh://git@git-server/git-server/repos/test-repo.git /tmp/test-repo -v
 
       # - run: make test
       - name: run tests
