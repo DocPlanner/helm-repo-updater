@@ -45,6 +45,11 @@ jobs:
 
       - run: make build
 
+      - name: try clone repository
+        run: |
+          ssh-add test-git-server/private_keys/helm-repo-updater-test
+          git clone ssh://git@git-server/git-server/repos/test-repo.git /tmp -v
+
       # - run: make test
       - name: run tests
         run: go test  -covermode=atomic -coverpkg=./... ./...
