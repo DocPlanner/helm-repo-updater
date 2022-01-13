@@ -44,7 +44,7 @@ jobs:
           go-version: 1.17
 
       - name: test connections open
-        run: ss -lptun 
+        run: lsof -i :2222
 
       - run: make build
 
