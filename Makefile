@@ -5,6 +5,12 @@ GO_OUTPUT                   = $(CURDIR)/bin/$(APP_NAME)
 APP_NAME                    ?= helm-repo-updater
 GO_TEST_DEFAULT_ARG         = -v ./internal/...
 
+IMAGE_REGISTRY ?= ghcr.io
+IMAGE_REPO     ?= docplanner
+
+IMAGE_BUILD_TOOLS = $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater/build-tools:develop
+IMAGE_GIT_REPO_SERVER_TOOL = $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater/git-repo-server:develop
+
 .PHONY: build
 build: clean
 	@echo "`date +'%d.%m.%Y %H:%M:%S'` Building $(GO_INPUT)"
@@ -18,7 +24,9 @@ clean:
 
 .PHONY: launch-test-deps
 launch-test-deps:
+ifndef isCI
 	docker-compose -f test-git-server/docker-compose.yaml up -d
+endif
 
 .PHONY: clean-test-deps
 clean-test-deps:
@@ -29,7 +37,7 @@ clean-test-deps:
 test: test-unit
 
 .PHONY: test-benchmark
-test-benchmark: launch-test-deps
+test-benchmark: isCIlaunch-test-deps
 	$(GO) test ${GO_TEST_DEFAULT_ARG} -cpu 1,2,4,8 -benchmem -bench .
 
 .PHONY: test-unit
@@ -50,6 +58,16 @@ golangci-lint: $(GOBIN_TOOL)
 .PHONY: gofumpt
 gofumpt: $(GOBIN_TOOL)
 	GOOS=linux $(GOBIN_TOOL) -run mvdan.cc/gofumpt -l -w .
+
+.PHONY: publish-build-tools
+publish-build-tools: ## Publish build-tools image
+	docker build -f tools/build-tools.Dockerfile -t $(IMAGE_BUILD_TOOLS) .
+	docker push $(IMAGE_BUILD_TOOLS)
+
+.PHONY: publish-git-server-tool
+publish-git-server-tool: ## Publish build-tools image
+	docker build -f test-git-server/git-server/Dockerfile -t $(IMAGE_GIT_REPO_SERVER_TOOL) .
+	docker push $(IMAGE_GIT_REPO_SERVER_TOOL)
 
 $(GOBIN_TOOL):
 	go get github.com/myitcv/gobin

@@ -1,0 +1,30 @@
+name: build-tools-CI
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'tools/**'
+
+jobs:
+  build-tools-ci:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
+
+      - name: Build and publish Tools image
+        run: make publish-build-tools
+      
+      - name: Build and publish Git Server tool image
+        run: make publish-git-server-tool

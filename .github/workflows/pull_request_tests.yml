@@ -21,21 +21,24 @@ jobs:
   tests:
     name: Tests
     runs-on: ubuntu-latest
+    container: 
+      image: ghcr.io/docplanner/helm-repo-updater/build-tools:develop
+      # TODO: Remind to delete this part when we make public the repository 
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.CR_PAT }}
+    services:
+      git-server:
+        image: ghcr.io/docplanner/helm-repo-updater/git-repo-server:develop
+        # TODO: Remind to delete this part when we make public the repository 
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.CR_PAT }}
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/setup-go@v2
-        with:
-          go-version: 1.17
-        
-      - name: Launch git-server
-        run: make launch-test-deps
-      - name: Configure test known_hosts
-        run: |
-          chmod 600 test-git-server/private_keys/helm-repo-updater-test
-          mkdir -p ~/.ssh/
-          ssh-keyscan -p 2222 localhost >> ~/.ssh/known_hosts
-
       - run: make build
 
-      - run: make test
+      - run: make test-coverage
+        env:
+          isCI: true
