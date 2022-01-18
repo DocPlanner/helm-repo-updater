@@ -12,11 +12,13 @@ import (
 
 var _ changeWriter = writeOverrides
 
-type changeWriter func(cfg HelmUpdaterConfig, gitC git.Client) (err error, skip bool, apps []ChangeEntry)
+type changeWriter func(cfg HelmUpdaterConfig, gitC git.Client) (apps []ChangeEntry, err error)
 
 //writeOverrides writes the overrides to the git files
-func writeOverrides(cfg HelmUpdaterConfig, gitC git.Client) (err error, skip bool, apps []ChangeEntry) {
+func writeOverrides(cfg HelmUpdaterConfig, gitC git.Client) (apps []ChangeEntry, err error) {
 	targetFile := path.Join(gitC.Root(), cfg.GitConf.File, cfg.File)
+
+	apps = make([]ChangeEntry, 0)
 
 	_, err = os.Stat(targetFile)
 	if err != nil {
@@ -24,31 +26,23 @@ func writeOverrides(cfg HelmUpdaterConfig, gitC git.Client) (err error, skip boo
 			AddField("application", cfg.AppName).
 			Errorf("target file %s doesn't exist.", cfg.File)
 
-		return err, true, nil
+		return apps, err
 	}
 
-	apps, err = overrideValues(cfg, targetFile)
-	if err == fmt.Errorf("no changes") {
-		return fmt.Errorf("target and marshaled keys for all targets are the same, skipping commit"), true, nil
-	}
+	apps = overrideValues(apps, cfg, targetFile)
 
 	if len(apps) == 0 {
-		return fmt.Errorf("nothing to update, skipping commit"), true, nil
+		return apps, fmt.Errorf("nothing to update, skipping commit")
 	}
 
-	err = gitC.Add(targetFile)
-
-	return err, false, apps
+	return apps, gitC.Add(targetFile)
 }
 
 // overrideValues overrides values in the given file
-func overrideValues(cfg HelmUpdaterConfig, targetFile string) ([]ChangeEntry, error) {
-	var noChange int
+func overrideValues(apps []ChangeEntry, cfg HelmUpdaterConfig, targetFile string) []ChangeEntry {
 	var err error
 
-	apps := make([]ChangeEntry, 0)
 	logCtx := log.WithContext().AddField("application", cfg.AppName)
-
 	for _, app := range cfg.UpdateApps {
 		// define new entry
 		var newEntry ChangeEntry
@@ -87,18 +81,14 @@ func overrideValues(cfg HelmUpdaterConfig, targetFile string) ([]ChangeEntry, er
 		newEntry.NewValue = *newValue
 
 		// check if there is any change
-		if oldValue != newValue {
-			apps = append(apps, newEntry)
-		} else {
+		if oldValue == newValue {
 			logCtx.Infof("target for key %s is the same, skipping", app.Key)
 
-			noChange++
+			continue
 		}
+
+		apps = append(apps, newEntry)
 	}
 
-	if noChange == len(cfg.UpdateApps) {
-		return nil, fmt.Errorf("no changes")
-	}
-
-	return apps, nil
+	return apps
 }
