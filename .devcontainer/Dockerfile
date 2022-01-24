@@ -43,7 +43,6 @@ RUN apt-get update \
     && go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.43.0 \
     && go install honnef.co/go/tools/...@v0.2.2 \
     && go install github.com/mgechev/revive@v1.1.2 \
-    # && go install github.com/go-delve/delve/cmd/dlv@v1.1.0 \
     # Install golangci-lint
     && curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin ${GOLANGCI_LINT_V} \
     #
