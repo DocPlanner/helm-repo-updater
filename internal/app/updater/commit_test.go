@@ -13,21 +13,20 @@ import (
 )
 
 const (
-	validGitCredentialsEmail         = "test-user@docplanner.com"
-	validGitCredentialsUsername      = "test-user"
-	SSHRepoPrefix                    = "ssh://git@"
-	SSHRepoLocalHostname             = SSHRepoPrefix + "localhost:2222"
-	SSHRepoCIHostname                = SSHRepoPrefix + "git-server"
-	validGitRepoRoute                = "/git-server/repos/test-repo.git"
-	invalidGitRepoRoute              = "/git-server/repos/test-r"
-	SSHPrivKeyRelativePath           = 2
-	validSSHPrivKeyRelativeRoute     = "/test-git-server/private_keys/helm-repo-updater-test"
-	validGitRepoBranch               = "develop"
-	invalidGitRepoBranch             = "developp"
-	validHelmAppName                 = "example-app"
-	validHelmAppFileToChange         = validHelmAppName + "/values.yaml"
-	ciDiscoveryEnvironment           = "isCI"
-	devContainerDiscoveryEnvironment = "isDevContainerEnvironment"
+	validGitCredentialsEmail     = "test-user@docplanner.com"
+	validGitCredentialsUsername  = "test-user"
+	SSHRepoPrefix                = "ssh://git@"
+	SSHRepoLocalHostname         = SSHRepoPrefix + "localhost:2222"
+	SSHRepoCIHostname            = SSHRepoPrefix + "git-server"
+	validGitRepoRoute            = "/git-server/repos/test-repo.git"
+	invalidGitRepoRoute          = "/git-server/repos/test-r"
+	SSHPrivKeyRelativePath       = 2
+	validSSHPrivKeyRelativeRoute = "/test-git-server/private_keys/helm-repo-updater-test"
+	validGitRepoBranch           = "develop"
+	invalidGitRepoBranch         = "developp"
+	validHelmAppName             = "example-app"
+	validHelmAppFileToChange     = validHelmAppName + "/values.yaml"
+	ciDiscoveryEnvironment       = "isCI"
 )
 
 func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
@@ -537,8 +536,7 @@ func TestUpdateApplication(t *testing.T) {
 
 func getSSHRepoHostnameAndPort() string {
 	_, isCI := os.LookupEnv(ciDiscoveryEnvironment)
-	_, isDevContainerEnvironment := os.LookupEnv(devContainerDiscoveryEnvironment)
-	if !isCI && !isDevContainerEnvironment {
+	if !isCI {
 		return SSHRepoLocalHostname
 	}
 	return SSHRepoCIHostname
