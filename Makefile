@@ -25,7 +25,9 @@ clean:
 .PHONY: launch-test-deps
 launch-test-deps:
 ifndef isCI
-	docker-compose -f test-git-server/docker-compose.yaml up -d
+ifndef isDevContainerEnvironment
+	ma
+endif
 endif
 
 .PHONY: clean-test-deps

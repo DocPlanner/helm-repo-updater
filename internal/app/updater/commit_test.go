@@ -12,21 +12,23 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-const validGitCredentialsEmail = "test-user@docplanner.com"
-const validGitCredentialsUsername = "test-user"
-
-// TODO: Remove after CI tests docker layer name
-const SSHRepoPrefix = "ssh://git@"
-const SSHRepoLocalHostname = SSHRepoPrefix + "localhost:2222"
-const SSHRepoCIHostname = SSHRepoPrefix + "git-server"
-const validGitRepoRoute = "/git-server/repos/test-repo.git"
-const invalidGitRepoRoute = "/git-server/repos/test-r"
-const validSSHPrivKeyRelativeRoute = "/test-git-server/private_keys/helm-repo-updater-test"
-const validGitRepoBranch = "develop"
-const invalidGitRepoBranch = "developp"
-const validHelmAppName = "example-app"
-const validHelmAppFileToChange = validHelmAppName + "/values.yaml"
-const ciDiscoveryEnvironment = "isCI"
+const (
+	validGitCredentialsEmail         = "test-user@docplanner.com"
+	validGitCredentialsUsername      = "test-user"
+	SSHRepoPrefix                    = "ssh://git@"
+	SSHRepoLocalHostname             = SSHRepoPrefix + "localhost:2222"
+	SSHRepoCIHostname                = SSHRepoPrefix + "git-server"
+	validGitRepoRoute                = "/git-server/repos/test-repo.git"
+	invalidGitRepoRoute              = "/git-server/repos/test-r"
+	SSHPrivKeyRelativePath           = 2
+	validSSHPrivKeyRelativeRoute     = "/test-git-server/private_keys/helm-repo-updater-test"
+	validGitRepoBranch               = "develop"
+	invalidGitRepoBranch             = "developp"
+	validHelmAppName                 = "example-app"
+	validHelmAppFileToChange         = validHelmAppName + "/values.yaml"
+	ciDiscoveryEnvironment           = "isCI"
+	devContainerDiscoveryEnvironment = "isDevContainerEnvironment"
+)
 
 func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 
@@ -47,6 +49,8 @@ func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 	}
 
 	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
+
+	fmt.Printf("validGitRepoURL: %s\n", validGitRepoURL)
 
 	gConf := git.Conf{
 		RepoURL: validGitRepoURL,
@@ -533,7 +537,8 @@ func TestUpdateApplication(t *testing.T) {
 
 func getSSHRepoHostnameAndPort() string {
 	_, isCI := os.LookupEnv(ciDiscoveryEnvironment)
-	if !isCI {
+	_, isDevContainerEnvironment := os.LookupEnv(devContainerDiscoveryEnvironment)
+	if !isCI && !isDevContainerEnvironment {
 		return SSHRepoLocalHostname
 	}
 	return SSHRepoCIHostname
