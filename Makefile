@@ -25,9 +25,7 @@ clean:
 .PHONY: launch-test-deps
 launch-test-deps:
 ifndef isCI
-ifndef isDevContainerEnvironment
-	ma
-endif
+	docker-compose -f test-git-server/docker-compose.yaml up -d
 endif
 
 .PHONY: clean-test-deps
@@ -68,7 +66,7 @@ publish-build-tools: ## Publish build-tools image
 
 .PHONY: publish-git-server-tool
 publish-git-server-tool: ## Publish build-tools image
-	docker build -f test-git-server/git-server/Dockerfile -t $(IMAGE_GIT_REPO_SERVER_TOOL) .
+	docker build -f test-git-server/Dockerfile -t $(IMAGE_GIT_REPO_SERVER_TOOL) test-git-server/
 	docker push $(IMAGE_GIT_REPO_SERVER_TOOL)
 
 $(GOBIN_TOOL):

@@ -2,7 +2,7 @@ version: "3.6"
 services:
     git-server:
       build:
-        dockerfile: git-server/Dockerfile
+        dockerfile: Dockerfile
         context: .
       container_name: git-server
       restart: always
@@ -10,6 +10,3 @@ services:
         - "2222:22"
       volumes:
         - "./repo_keys:/git-server/keys"
-        - "repos:/git-server/repos"
-volumes:
-  repos:
