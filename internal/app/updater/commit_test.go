@@ -49,8 +49,6 @@ func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 
 	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
 
-	fmt.Printf("validGitRepoURL: %s\n", validGitRepoURL)
-
 	gConf := git.Conf{
 		RepoURL: validGitRepoURL,
 		Branch:  validGitRepoBranch,
