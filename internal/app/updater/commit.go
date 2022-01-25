@@ -37,7 +37,6 @@ func commitChangesLocked(cfg HelmUpdaterConfig, state *SyncIterationState) (*[]C
 // after the UpdateApplication cycle has finished.
 func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry, error) {
 	var apps []ChangeEntry
-	var skip bool
 	var gitCommitMessage string
 
 	logCtx := log.WithContext().AddField("application", cfg.AppName)
@@ -97,11 +96,8 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 	}
 
 	// write changes to files
-	if err, skip, apps = write(cfg, gitC); err != nil {
+	if apps, err = write(cfg, gitC); err != nil {
 		return nil, err
-		//TODO: Review how to do when skip
-	} else if skip {
-		return nil, nil
 	}
 
 	commitOpts := &git.CommitOptions{}
