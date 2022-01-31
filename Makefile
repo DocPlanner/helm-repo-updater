@@ -43,7 +43,7 @@ endif
 ifdef isDevContainer
 	docker-compose -f test-git-server/docker-compose-devcontainer.yaml down
 endif
-docker volume prune -f && docker system prune -f
+	docker volume prune -f && docker system prune -f
 
 .PHONY: test
 test: test-unit
