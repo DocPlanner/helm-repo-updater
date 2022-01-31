@@ -22,19 +22,19 @@ RUN mkdir /git-server/repos/
 # pull/push functionality, plus custom commands present in a subdirectory
 # named git-shell-commands in the user’s home directory.
 # More info: https://git-scm.com/docs/git-shell
-COPY git-server/git-shell-commands /home/git/git-shell-commands
+COPY test-git-server/git-server/git-shell-commands /home/git/git-shell-commands
 RUN chmod -R +x /home/git/git-shell-commands
 
 # sshd_config file is edited for enable access key and disable access password
-COPY git-server/sshd_config /etc/ssh/sshd_config
-COPY git-server/create_repo.sh create_repo.sh
-COPY git-server/start.sh start.sh
+COPY test-git-server/git-server/sshd_config /etc/ssh/sshd_config
+COPY test-git-server/git-server/create_repo.sh create_repo.sh
+COPY test-git-server/git-server/start.sh start.sh
 
 # copy predefined ssh public key
-COPY repo_keys/id_rsa.pub /git-server/keys/
+COPY test-git-server/repo_keys/id_rsa.pub /git-server/keys/
 
 # copy predefined ssh private key
-COPY private_keys/helm-repo-updater-test /etc/ssh
+COPY test-git-server/private_keys/helm-repo-updater-test /etc/ssh
 RUN chmod 600 /etc/ssh/helm-repo-updater-test
 
 EXPOSE 22

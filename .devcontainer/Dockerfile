@@ -29,7 +29,10 @@ RUN apt-get update \
     && mv gocode-gomod $GOPATH/bin/ \
     #
     # Install Go tools
-    && go install golang.org/x/tools/...@v0.1.8 \
+    && go install golang.org/x/tools/gopls@v0.7.5 \
+    && go install golang.org/x/tools/cmd/goimports@v0.1.9 \
+    && go install golang.org/x/tools/cmd/guru@v0.1.9 \
+    && go install golang.org/x/tools/cmd/gorename@v0.1.9 \
     && go install github.com/uudashr/gopkgs/cmd/gopkgs@v1.3.2 \
     && go install github.com/ramya-rao-a/go-outline@v0.0.0-20210608161538-9736a4bde949 \
     && go install github.com/godoctor/godoctor@v0.0.0-20211103152449-96567efaee44 \
@@ -71,3 +74,13 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
+
+# Copy private key for test-git-server
+COPY test-git-server/private_keys/helm-repo-updater-test .
+
+# Configure SSH adding helm-repo-updater-test key
+RUN mkdir -p ~/.ssh
+RUN chmod 600 ./helm-repo-updater-test
+
+# Add git-server access with helm-repo-updater-test key to know_hosts
+RUN echo "git-server $(ssh-keygen -f ./helm-repo-updater-test -y | cut -d' ' -f-2)" >> ~/.ssh/known_hosts

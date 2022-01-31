@@ -1,12 +1,10 @@
 version: "3.6"
 services:
-    git-server:
-      build:
-        dockerfile: Dockerfile
-        context: .
-      container_name: git-server
-      restart: always
-      ports:
-        - "2222:22"
-      volumes:
-        - "./repo_keys:/git-server/keys"
+  git-server:
+    build:
+      dockerfile: Dockerfile
+      context: ..
+    container_name: git-server
+    restart: always
+    ports:
+      - "2222:22"

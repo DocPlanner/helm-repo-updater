@@ -24,14 +24,26 @@ clean:
 
 .PHONY: launch-test-deps
 launch-test-deps:
+ifndef isDevContainer
 ifndef isCI
 	docker-compose -f test-git-server/docker-compose.yaml up -d
+endif
+endif
+ifdef isDevContainer
+	docker-compose -f test-git-server/docker-compose-devcontainer.yaml up -d
 endif
 
 .PHONY: clean-test-deps
 clean-test-deps:
+ifndef isDevContainer
+ifndef isCI
 	docker-compose -f test-git-server/docker-compose.yaml down
-	docker volume prune -f && docker system prune -f
+endif
+endif
+ifdef isDevContainer
+	docker-compose -f test-git-server/docker-compose-devcontainer.yaml down
+endif
+docker volume prune -f && docker system prune -f
 
 .PHONY: test
 test: test-unit
@@ -65,8 +77,8 @@ publish-build-tools: ## Publish build-tools image
 	docker push $(IMAGE_BUILD_TOOLS)
 
 .PHONY: publish-git-server-tool
-publish-git-server-tool: ## Publish build-tools image
-	docker build -f test-git-server/Dockerfile -t $(IMAGE_GIT_REPO_SERVER_TOOL) test-git-server/
+publish-git-server-tool: ## Publish git-server-tool image
+	docker build -f test-git-server/Dockerfile -t $(IMAGE_GIT_REPO_SERVER_TOOL) .
 	docker push $(IMAGE_GIT_REPO_SERVER_TOOL)
 
 $(GOBIN_TOOL):

@@ -13,20 +13,21 @@ import (
 )
 
 const (
-	validGitCredentialsEmail     = "test-user@docplanner.com"
-	validGitCredentialsUsername  = "test-user"
-	SSHRepoPrefix                = "ssh://git@"
-	SSHRepoLocalHostname         = SSHRepoPrefix + "localhost:2222"
-	SSHRepoCIHostname            = SSHRepoPrefix + "git-server"
-	validGitRepoRoute            = "/git-server/repos/test-repo.git"
-	invalidGitRepoRoute          = "/git-server/repos/test-r"
-	SSHPrivKeyRelativePath       = 2
-	validSSHPrivKeyRelativeRoute = "/test-git-server/private_keys/helm-repo-updater-test"
-	validGitRepoBranch           = "develop"
-	invalidGitRepoBranch         = "developp"
-	validHelmAppName             = "example-app"
-	validHelmAppFileToChange     = validHelmAppName + "/values.yaml"
-	ciDiscoveryEnvironment       = "isCI"
+	validGitCredentialsEmail      = "test-user@docplanner.com"
+	validGitCredentialsUsername   = "test-user"
+	SSHRepoPrefix                 = "ssh://git@"
+	SSHRepoLocalHostname          = SSHRepoPrefix + "localhost:2222"
+	SSHRepoCIHostname             = SSHRepoPrefix + "git-server"
+	validGitRepoRoute             = "/git-server/repos/test-repo.git"
+	invalidGitRepoRoute           = "/git-server/repos/test-r"
+	SSHPrivKeyRelativePath        = 2
+	validSSHPrivKeyRelativeRoute  = "/test-git-server/private_keys/helm-repo-updater-test"
+	validGitRepoBranch            = "develop"
+	invalidGitRepoBranch          = "developp"
+	validHelmAppName              = "example-app"
+	validHelmAppFileToChange      = validHelmAppName + "/values.yaml"
+	ciDiscoveryEnvironmentName    = "isCI"
+	isDevContainerEnvironmentName = "isDevContainer"
 )
 
 func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
@@ -48,6 +49,8 @@ func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 	}
 
 	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
+
+	fmt.Printf("validGitRepoURL: %s\n", validGitRepoURL)
 
 	gConf := git.Conf{
 		RepoURL: validGitRepoURL,
@@ -533,8 +536,9 @@ func TestUpdateApplication(t *testing.T) {
 }
 
 func getSSHRepoHostnameAndPort() string {
-	_, isCI := os.LookupEnv(ciDiscoveryEnvironment)
-	if !isCI {
+	_, isCI := os.LookupEnv(ciDiscoveryEnvironmentName)
+	_, isDevContainerEnvironment := os.LookupEnv(isDevContainerEnvironmentName)
+	if !isCI && !isDevContainerEnvironment {
 		return SSHRepoLocalHostname
 	}
 	return SSHRepoCIHostname
