@@ -13,24 +13,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
+      - uses: actions/setup-python@v2.3.1
+        with:
+          python-version: '3.9'
       - uses: golangci/golangci-lint-action@v2
         with:
           version: v1.40.1
-  
+      - uses: pre-commit/action@v2.0.3
+
   tests:
     name: Tests
     runs-on: ubuntu-latest
-    container: 
+    container:
       image: ghcr.io/docplanner/helm-repo-updater/build-tools:develop
-      # TODO: Remind to delete this part when we make public the repository 
+      # TODO: Remind to delete this part when we make public the repository
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.CR_PAT }}
     services:
       git-server:
         image: ghcr.io/docplanner/helm-repo-updater/git-repo-server:develop
-        # TODO: Remind to delete this part when we make public the repository 
+        # TODO: Remind to delete this part when we make public the repository
         credentials:
           username: ${{ github.actor }}
           password: ${{ secrets.CR_PAT }}

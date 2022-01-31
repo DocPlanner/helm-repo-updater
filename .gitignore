@@ -15,7 +15,7 @@
 # vendor/
 
 # VisualStudioCode
-.vscode/* 
+.vscode/*
 
 ### Intellij ###
 .idea
