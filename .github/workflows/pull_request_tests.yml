@@ -74,7 +74,7 @@ jobs:
       uses: github/codeql-action/init@v1
       with:
         languages: ${{ matrix.language }}
-        external-repository-token: ${{ secrets.GITHUB_TOKEN }}
+        external-repository-token: ${{ secrets.CR_PAT }}
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
