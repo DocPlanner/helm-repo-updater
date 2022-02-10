@@ -87,7 +87,7 @@ var runCmd = &cobra.Command{
 
 			return
 		} else {
-			logger.Info("Successfully parsed commit message template")
+			logger.Info("successfully parsed commit message template")
 
 			gitConf.Message = tpl
 		}
@@ -103,7 +103,7 @@ var runCmd = &cobra.Command{
 		}
 
 		if err := runImageUpdater(cfg); err != nil {
-			logger.Error("Can not run image updater", err)
+			logger.Error("can not run image updater", err)
 		}
 	},
 }
@@ -123,12 +123,13 @@ func loadLogger(logLevel, logStashProtocol, logStashAddr string) logger.Logger {
 func runImageUpdater(cfg updater.HelmUpdaterConfig) error {
 	syncState := updater.NewSyncIterationState()
 
-	cfg.Logger.DebugWithContext("Updating values", map[string]interface{}{
-		"changes": cfg.UpdateApps,
+	cfg.Logger.DebugWithContext("updating values", map[string]interface{}{
+		"application": cfg.AppName,
+		"changes":     cfg.UpdateApps,
 	})
 
 	return func(cfg updater.HelmUpdaterConfig) error {
-		cfg.Logger.DebugWithContext("Processing application", map[string]interface{}{
+		cfg.Logger.DebugWithContext("processing application file", map[string]interface{}{
 			"application": cfg.AppName,
 			"file":        cfg.File,
 		})
@@ -136,7 +137,7 @@ func runImageUpdater(cfg updater.HelmUpdaterConfig) error {
 		_, err := updater.UpdateApplication(cfg, syncState)
 		if err != nil {
 			cfg.Logger.Error(
-				fmt.Sprintf("Can not update application: %s", cfg.AppName),
+				fmt.Sprintf("can not update application: %s", cfg.AppName),
 				err,
 			)
 
@@ -144,7 +145,7 @@ func runImageUpdater(cfg updater.HelmUpdaterConfig) error {
 		}
 
 		cfg.Logger.Info(
-			fmt.Sprintf("Application %s successfully updated", cfg.AppName),
+			fmt.Sprintf("application %s successfully updated", cfg.AppName),
 		)
 
 		return nil
