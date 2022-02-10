@@ -25,6 +25,6 @@ jobs:
 
       - name: Build and publish Tools image
         run: make publish-build-tools
-      
+
       - name: Build and publish Git Server tool image
         run: make publish-git-server-tool

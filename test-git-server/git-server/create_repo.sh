@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [[ ! -d "test-repo" ]]; then 
+if [[ ! -d "test-repo" ]]; then
   echo "test-repo doesn't exists already!"
   mkdir test-repo
 fi
@@ -12,7 +12,7 @@ git config --global user.name "test-user"
 git config --global init.defaultBranch develop
 git init --shared=true
 
-if [[ ! -d "example-app" ]]; then 
+if [[ ! -d "example-app" ]]; then
   echo "example-app doesn't exists already!"
   mkdir example-app
 fi

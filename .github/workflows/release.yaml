@@ -22,7 +22,7 @@ jobs:
       - name: Set Docker Image Registry Env
         run: |
           echo DOCKER_IMAGE_REGISTRY=$(echo "${{ env.REGISTRY}}/${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
-      
+
       - name: Test DOCKER_IMAGE_REGISTRY value
         run: echo ${{ env.DOCKER_IMAGE_REGISTRY }}
 
