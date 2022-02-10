@@ -26,8 +26,28 @@ func (z *ZeroLogger) Info(message string) {
 	z.logger.Info().Msg(message)
 }
 
-func (z *ZeroLogger) InfoWithContext(message string, context map[string]interface{}) {
-	z.logger.Info().Fields(context).Msg(message)
+func (z *ZeroLogger) InfoWithContext(message string, ctx logContext) {
+	z.logger.Info().Fields(ctx).Msg(message)
+}
+
+func (z *ZeroLogger) DebugWithContext(message string, ctx logContext) {
+	z.logger.Info().Fields(ctx).Msg(message)
+}
+
+func (z *ZeroLogger) WarningWithContext(message string, ctx logContext) {
+	z.logger.Warn().Fields(ctx).Msg(message)
+}
+
+func (z *ZeroLogger) Fatal(message string, err error) {
+	z.logger.Fatal().Err(err).Msg(message)
+}
+
+func (z *ZeroLogger) Error(message string, err error) {
+	z.logger.Error().Err(err).Msg(message)
+}
+
+func (z *ZeroLogger) ErrorWithContext(message string, err error, ctx logContext) {
+	z.logger.Error().Err(err).Fields(ctx).Msg(message)
 }
 
 func NewZeroLogger(logger zerolog.Logger) *ZeroLogger {
@@ -88,12 +108,4 @@ func newDiodeConsoleWriter(pollInterval time.Duration) diode.Writer {
 		})
 
 	return consoleWriter
-}
-
-func (z *ZeroLogger) Fatal(message string, err error) {
-	z.logger.Fatal().Err(err).Msg(message)
-}
-
-func (z *ZeroLogger) ErrorWithContext(message string, err error, context map[string]interface{}) {
-	z.logger.Error().Err(err).Fields(context).Msg(message)
 }

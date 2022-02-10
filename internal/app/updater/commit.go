@@ -6,19 +6,23 @@ import (
 	"os"
 
 	"github.com/argoproj-labs/argocd-image-updater/ext/git"
-	"github.com/argoproj-labs/argocd-image-updater/pkg/log"
 )
 
 // UpdateApplication update all values of a single application.
 func UpdateApplication(cfg HelmUpdaterConfig, state *SyncIterationState) (*[]ChangeEntry, error) {
 	appsChanges, err := commitChangesLocked(cfg, state)
 	if err != nil {
-		log.Errorf("Could not update application spec: %v", err)
+		cfg.Logger.WarningWithContext("could not update application spec", map[string]interface{}{
+			"application": cfg.AppName,
+			"error":       err.Error(),
+		})
 
 		return nil, err
 	}
 
-	log.Infof("Successfully updated the live application spec")
+	cfg.Logger.InfoWithContext("successfully updated the live application spec", map[string]interface{}{
+		"application": cfg.AppName,
+	})
 
 	return appsChanges, nil
 
@@ -39,8 +43,6 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 	var apps []ChangeEntry
 	var gitCommitMessage string
 
-	logCtx := log.WithContext().AddField("application", cfg.AppName)
-
 	creds, err := cfg.GitCredentials.NewGitCreds(cfg.GitConf.RepoURL)
 	if err != nil {
 		return nil, fmt.Errorf("could not get creds for repo '%s': %v", cfg.AppName, err)
@@ -53,7 +55,7 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 	defer func() {
 		err := os.RemoveAll(tempRoot)
 		if err != nil {
-			logCtx.Errorf("could not remove temp dir: %v", err)
+			cfg.Logger.Error("could not remove temp dir", err)
 		}
 	}()
 
@@ -81,10 +83,16 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 
 	checkOutBranch := cfg.GitConf.Branch
 
-	logCtx.Tracef("targetRevision for update is '%s'", checkOutBranch)
+	cfg.Logger.DebugWithContext("target revision for update set", map[string]interface{}{
+		"application": cfg.AppName,
+		"revision":    checkOutBranch,
+	})
 	if checkOutBranch == "" || checkOutBranch == "HEAD" {
 		checkOutBranch, err = gitC.SymRefToBranch(checkOutBranch)
-		logCtx.Infof("resolved remote default branch to '%s' and using that for operations", checkOutBranch)
+		cfg.Logger.DebugWithContext("resolved remote default branch, using that for operations", map[string]interface{}{
+			"application": cfg.AppName,
+			"branch":      checkOutBranch,
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -102,7 +110,7 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 
 	commitOpts := &git.CommitOptions{}
 	if len(apps) > 0 && cfg.GitConf.Message != nil {
-		gitCommitMessage = TemplateCommitMessage(cfg.GitConf.Message, cfg.AppName, apps)
+		gitCommitMessage = TemplateCommitMessage(cfg.Logger, cfg.GitConf.Message, cfg.AppName, apps)
 	}
 
 	if gitCommitMessage != "" {
@@ -110,7 +118,10 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 		if err != nil {
 			return nil, fmt.Errorf("cold not create temp file: %v", err)
 		}
-		logCtx.Debugf("Writing commit message to %s", cm.Name())
+		cfg.Logger.DebugWithContext("writing commit message", map[string]interface{}{
+			"application": cfg.AppName,
+			"message":     cm.Name(),
+		})
 		err = ioutil.WriteFile(cm.Name(), []byte(gitCommitMessage), 0600)
 		if err != nil {
 			_ = cm.Close()
@@ -122,7 +133,9 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 	}
 
 	if cfg.DryRun {
-		logCtx.Infof("dry run, not committing changes")
+		cfg.Logger.InfoWithContext("dry run, not committing changes", map[string]interface{}{
+			"application": cfg.AppName,
+		})
 
 		return &apps, nil
 	}

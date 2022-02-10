@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/docplanner/helm-repo-updater/internal/app/logger"
 	"os"
 	"path"
 	"text/template"
 
-	"github.com/argoproj-labs/argocd-image-updater/pkg/log"
 	"github.com/docplanner/helm-repo-updater/internal/app/git"
 	"github.com/docplanner/helm-repo-updater/internal/app/updater"
 	"github.com/spf13/cobra"
@@ -21,11 +21,13 @@ const (
 	GitFile        = "git-file"
 	GitDir         = "git-dir"
 
-	AppName       = "app-name"
-	SshPrivateKey = "ssh-private-key"
-	DryRun        = "dry-run"
-	LogLevel      = "logLevel"
-	HelmKeyValues = "helm-key-values"
+	AppName          = "app-name"
+	SshPrivateKey    = "ssh-private-key"
+	DryRun           = "dry-run"
+	LogLevel         = "logLevel"
+	LogStashProtocol = "log-stash-protocol"
+	LogStashAddr     = "log-stash-addr"
+	HelmKeyValues    = "helm-key-values"
 )
 
 var cfg = updater.HelmUpdaterConfig{}
@@ -45,14 +47,10 @@ var runCmd = &cobra.Command{
 		sshKey, _ := cmd.Flags().GetString(SshPrivateKey)
 		appName, _ := cmd.Flags().GetString(AppName)
 		logLevel, _ := cmd.Flags().GetString(LogLevel)
+		logStashProtocol, _ := cmd.Flags().GetString(LogStashProtocol)
+		logStashAddress, _ := cmd.Flags().GetString(LogStashAddr)
 		dryRun, _ := cmd.Flags().GetBool(DryRun)
 		helmKVs, _ := cmd.Flags().GetStringToString(HelmKeyValues)
-
-		if err := log.SetLogLevel(logLevel); err != nil {
-			fmt.Println(err)
-
-			os.Exit(1)
-		}
 
 		if len(helmKVs) == 0 {
 			if err := cmd.Help(); err != nil {
@@ -82,54 +80,75 @@ var runCmd = &cobra.Command{
 			Branch:  gitBranch,
 		}
 
+		logger := loadLogger(logLevel, logStashProtocol, logStashAddress)
+
 		if tpl, err := template.New("commitMessage").Parse(git.DefaultGitCommitMessage); err != nil {
-			log.Fatalf("could not parse commit message template: %v", err)
+			logger.Fatal("could not parse commit message template", err)
 
 			return
 		} else {
-			log.Debugf("Successfully parsed commit message template")
+			logger.Info("Successfully parsed commit message template")
 
 			gitConf.Message = tpl
 		}
 
 		cfg = updater.HelmUpdaterConfig{
 			DryRun:         dryRun,
-			LogLevel:       logLevel,
 			AppName:        appName,
 			UpdateApps:     updateApps,
 			File:           path.Join(gitDir, appName, gitFile),
 			GitCredentials: gitCredentials,
 			GitConf:        gitConf,
+			Logger:         logger,
 		}
 
 		if err := runImageUpdater(cfg); err != nil {
-			log.Errorf("Error: %v", err)
+			logger.Error("Can not run image updater", err)
 		}
 	},
 }
 
-func runImageUpdater(cfg updater.HelmUpdaterConfig) error {
+func loadLogger(logLevel, logStashProtocol, logStashAddr string) logger.Logger {
+	if logStashProtocol == "" || logStashAddr == "" {
+		z := logger.NewConsoleZeroLogger(logLevel)
 
+		return logger.NewZeroLogger(z)
+	}
+
+	z := logger.NewConsoleELKZeroLogger(logLevel, logStashProtocol, logStashAddr)
+
+	return logger.NewZeroLogger(z)
+}
+
+func runImageUpdater(cfg updater.HelmUpdaterConfig) error {
 	syncState := updater.NewSyncIterationState()
 
-	fmt.Println(cfg.UpdateApps)
+	cfg.Logger.DebugWithContext("Updating values", map[string]interface{}{
+		"changes": cfg.UpdateApps,
+	})
 
-	err := func(cfg updater.HelmUpdaterConfig) error {
-		log.Debugf("Processing application %s in directory %s", cfg.AppName, cfg.File)
+	return func(cfg updater.HelmUpdaterConfig) error {
+		cfg.Logger.DebugWithContext("Processing application", map[string]interface{}{
+			"application": cfg.AppName,
+			"file":        cfg.File,
+		})
 
 		_, err := updater.UpdateApplication(cfg, syncState)
 		if err != nil {
-			fmt.Printf("err is %v\n", err)
+			cfg.Logger.Error(
+				fmt.Sprintf("Can not update application: %s", cfg.AppName),
+				err,
+			)
+
 			return err
 		}
 
+		cfg.Logger.Info(
+			fmt.Sprintf("Application %s successfully updated", cfg.AppName),
+		)
+
 		return nil
 	}(cfg)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func init() {
@@ -146,6 +165,8 @@ func init() {
 	runCmd.Flags().String(SshPrivateKey, "", "ssh private key (only using ")
 	runCmd.Flags().Bool(DryRun, false, "run in dry-run mode. If set to true, do not perform any changes")
 	runCmd.Flags().String(LogLevel, "info", "set the loglevel to one of trace|debug|info|warn|error")
+	runCmd.Flags().String(LogStashProtocol, "", "set the protocol like udp/tcp for LogStash (optional)")
+	runCmd.Flags().String(LogStashAddr, "", "set the http address to achieve logstash (optional)")
 	runCmd.Flags().StringToString(HelmKeyValues, nil, "helm key-values sets")
 
 	_ = runCmd.MarkFlagRequired(GitCommitUser)
@@ -155,5 +176,4 @@ func init() {
 	_ = runCmd.MarkFlagRequired(GitDir)
 	_ = runCmd.MarkFlagRequired(HelmKeyValues)
 	_ = runCmd.MarkFlagRequired(AppName)
-
 }

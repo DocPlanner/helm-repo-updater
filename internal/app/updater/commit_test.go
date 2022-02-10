@@ -2,6 +2,7 @@ package updater
 
 import (
 	"fmt"
+	"github.com/docplanner/helm-repo-updater/internal/app/logger"
 	"log"
 	"os"
 	"testing"
@@ -70,7 +71,7 @@ func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 
 	cfg := HelmUpdaterConfig{
 		DryRun:         true,
-		LogLevel:       "info",
+		Logger:         logger.NewNullLogger(),
 		AppName:        validHelmAppName,
 		UpdateApps:     changeEntries,
 		File:           validHelmAppFileToChange,
@@ -126,7 +127,7 @@ func TestUpdateApplicationDryRun(t *testing.T) {
 
 	cfg := HelmUpdaterConfig{
 		DryRun:         true,
-		LogLevel:       "info",
+		Logger:         logger.NewNullLogger(),
 		AppName:        validHelmAppName,
 		UpdateApps:     changeEntries,
 		File:           validHelmAppFileToChange,
@@ -180,7 +181,7 @@ func TestUpdateApplicationDryRunNoRepoURL(t *testing.T) {
 
 	cfg := HelmUpdaterConfig{
 		DryRun:         true,
-		LogLevel:       "info",
+		Logger:         logger.NewNullLogger(),
 		AppName:        validHelmAppName,
 		UpdateApps:     changeEntries,
 		File:           validHelmAppFileToChange,
@@ -233,7 +234,7 @@ func TestUpdateApplicationDryRunInvalidGitRepo(t *testing.T) {
 
 	cfg := HelmUpdaterConfig{
 		DryRun:         true,
-		LogLevel:       "info",
+		Logger:         logger.NewNullLogger(),
 		AppName:        validHelmAppName,
 		UpdateApps:     changeEntries,
 		File:           validHelmAppFileToChange,
@@ -285,7 +286,7 @@ func TestUpdateApplicationDryRunInvalidGitBranch(t *testing.T) {
 
 	cfg := HelmUpdaterConfig{
 		DryRun:         true,
-		LogLevel:       "info",
+		Logger:         logger.NewNullLogger(),
 		AppName:        validHelmAppName,
 		UpdateApps:     changeEntries,
 		File:           validHelmAppFileToChange,
@@ -338,7 +339,7 @@ func TestUpdateApplicationDryRuNoBranch(t *testing.T) {
 
 	cfg := HelmUpdaterConfig{
 		DryRun:         true,
-		LogLevel:       "info",
+		Logger:         logger.NewNullLogger(),
 		AppName:        validHelmAppName,
 		UpdateApps:     changeEntries,
 		File:           validHelmAppFileToChange,
@@ -397,7 +398,7 @@ func TestUpdateApplicationDryRunWithGitMessage(t *testing.T) {
 
 	cfg := HelmUpdaterConfig{
 		DryRun:         true,
-		LogLevel:       "info",
+		Logger:         logger.NewNullLogger(),
 		AppName:        validHelmAppName,
 		UpdateApps:     changeEntries,
 		File:           validHelmAppFileToChange,
@@ -463,7 +464,7 @@ func TestUpdateApplicationDryRunInvalidKey(t *testing.T) {
 
 	cfg := HelmUpdaterConfig{
 		DryRun:         true,
-		LogLevel:       "info",
+		Logger:         logger.NewNullLogger(),
 		AppName:        validHelmAppName,
 		UpdateApps:     changeEntries,
 		File:           validHelmAppFileToChange,
@@ -519,7 +520,7 @@ func TestUpdateApplication(t *testing.T) {
 
 	cfg := HelmUpdaterConfig{
 		DryRun:         false,
-		LogLevel:       "info",
+		Logger:         logger.NewNullLogger(),
 		AppName:        validHelmAppName,
 		UpdateApps:     changeEntries,
 		File:           validHelmAppFileToChange,
