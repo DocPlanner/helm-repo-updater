@@ -2,6 +2,7 @@ package updater
 
 import (
 	"fmt"
+	"github.com/docplanner/helm-repo-updater/internal/app/logger"
 	"io/ioutil"
 	"os"
 
@@ -12,7 +13,7 @@ import (
 func UpdateApplication(cfg HelmUpdaterConfig, state *SyncIterationState) (*[]ChangeEntry, error) {
 	appsChanges, err := commitChangesLocked(cfg, state)
 	if err != nil {
-		cfg.Logger.WarningWithContext("could not update application spec", map[string]interface{}{
+		cfg.Logger.WarningWithContext("could not update application spec", logger.LogContext{
 			"application": cfg.AppName,
 			"error":       err.Error(),
 		})
@@ -20,7 +21,7 @@ func UpdateApplication(cfg HelmUpdaterConfig, state *SyncIterationState) (*[]Cha
 		return nil, err
 	}
 
-	cfg.Logger.InfoWithContext("successfully updated the live application spec", map[string]interface{}{
+	cfg.Logger.InfoWithContext("successfully updated the live application spec", logger.LogContext{
 		"application": cfg.AppName,
 	})
 
@@ -83,13 +84,13 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 
 	checkOutBranch := cfg.GitConf.Branch
 
-	cfg.Logger.DebugWithContext("target revision for update set", map[string]interface{}{
+	cfg.Logger.DebugWithContext("target revision for update set", logger.LogContext{
 		"application": cfg.AppName,
 		"revision":    checkOutBranch,
 	})
 	if checkOutBranch == "" || checkOutBranch == "HEAD" {
 		checkOutBranch, err = gitC.SymRefToBranch(checkOutBranch)
-		cfg.Logger.DebugWithContext("resolved remote default branch, using that for operations", map[string]interface{}{
+		cfg.Logger.DebugWithContext("resolved remote default branch, using that for operations", logger.LogContext{
 			"application": cfg.AppName,
 			"branch":      checkOutBranch,
 		})
@@ -118,7 +119,7 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 		if err != nil {
 			return nil, fmt.Errorf("cold not create temp file: %v", err)
 		}
-		cfg.Logger.DebugWithContext("writing commit message", map[string]interface{}{
+		cfg.Logger.DebugWithContext("writing commit message", logger.LogContext{
 			"application": cfg.AppName,
 			"message":     cm.Name(),
 		})
@@ -133,7 +134,7 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 	}
 
 	if cfg.DryRun {
-		cfg.Logger.InfoWithContext("dry run, not committing changes", map[string]interface{}{
+		cfg.Logger.InfoWithContext("dry run, not committing changes", logger.LogContext{
 			"application": cfg.AppName,
 		})
 

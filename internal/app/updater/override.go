@@ -2,6 +2,7 @@ package updater
 
 import (
 	"fmt"
+	"github.com/docplanner/helm-repo-updater/internal/app/logger"
 	"os"
 	"path"
 
@@ -21,7 +22,7 @@ func writeOverrides(cfg HelmUpdaterConfig, gitC git.Client) (apps []ChangeEntry,
 
 	_, err = os.Stat(targetFile)
 	if err != nil {
-		cfg.Logger.ErrorWithContext("target file doesn't exist", err, map[string]interface{}{
+		cfg.Logger.ErrorWithContext("target file doesn't exist", err, logger.LogContext{
 			"application": cfg.AppName,
 			"file":        cfg.File,
 		})
@@ -50,7 +51,7 @@ func overrideValues(apps []ChangeEntry, cfg HelmUpdaterConfig, targetFile string
 		// replace helm parameters
 		oldValue, err = yq.ReadKey(app.Key, targetFile)
 		if err != nil {
-			cfg.Logger.WarningWithContext("can not read the presented key due to error, skipping change", map[string]interface{}{
+			cfg.Logger.WarningWithContext("can not read the presented key due to error, skipping change", logger.LogContext{
 				"application": cfg.AppName,
 				"key":         app.Key,
 				"error":       err.Error(),
@@ -63,7 +64,7 @@ func overrideValues(apps []ChangeEntry, cfg HelmUpdaterConfig, targetFile string
 		newEntry.OldValue = *oldValue
 
 		// replace helm parameters
-		cfg.Logger.DebugWithContext("settings new value", map[string]interface{}{
+		cfg.Logger.DebugWithContext("settings new value", logger.LogContext{
 			"application": cfg.AppName,
 			"key":         app.Key,
 			"value":       app.NewValue,
@@ -71,7 +72,7 @@ func overrideValues(apps []ChangeEntry, cfg HelmUpdaterConfig, targetFile string
 
 		err = yq.InplaceApply(app.Key, app.NewValue, targetFile)
 		if err != nil {
-			cfg.Logger.WarningWithContext("failed to update key", map[string]interface{}{
+			cfg.Logger.WarningWithContext("failed to update key", logger.LogContext{
 				"application": cfg.AppName,
 				"key":         app.Key,
 				"error":       err.Error(),
@@ -85,7 +86,7 @@ func overrideValues(apps []ChangeEntry, cfg HelmUpdaterConfig, targetFile string
 		// check patched app
 		newValue, err = yq.ReadKey(app.Key, targetFile)
 		if err != nil {
-			cfg.Logger.WarningWithContext("failed to read the patched key, skipping change", map[string]interface{}{
+			cfg.Logger.WarningWithContext("failed to read the patched key, skipping change", logger.LogContext{
 				"application": cfg.AppName,
 				"key":         app.Key,
 				"error":       err.Error(),
@@ -98,7 +99,7 @@ func overrideValues(apps []ChangeEntry, cfg HelmUpdaterConfig, targetFile string
 
 		// check if there is any change
 		if oldValue == newValue {
-			cfg.Logger.WarningWithContext("target for key is the same, skipping change", map[string]interface{}{
+			cfg.Logger.WarningWithContext("target for key is the same, skipping change", logger.LogContext{
 				"application": cfg.AppName,
 				"key":         app.Key,
 			})

@@ -26,15 +26,15 @@ func (z *ZeroLogger) Info(message string) {
 	z.logger.Info().Msg(message)
 }
 
-func (z *ZeroLogger) InfoWithContext(message string, ctx logContext) {
+func (z *ZeroLogger) InfoWithContext(message string, ctx LogContext) {
 	z.logger.Info().Fields(ctx).Msg(message)
 }
 
-func (z *ZeroLogger) DebugWithContext(message string, ctx logContext) {
+func (z *ZeroLogger) DebugWithContext(message string, ctx LogContext) {
 	z.logger.Info().Fields(ctx).Msg(message)
 }
 
-func (z *ZeroLogger) WarningWithContext(message string, ctx logContext) {
+func (z *ZeroLogger) WarningWithContext(message string, ctx LogContext) {
 	z.logger.Warn().Fields(ctx).Msg(message)
 }
 
@@ -46,7 +46,7 @@ func (z *ZeroLogger) Error(message string, err error) {
 	z.logger.Error().Err(err).Msg(message)
 }
 
-func (z *ZeroLogger) ErrorWithContext(message string, err error, ctx logContext) {
+func (z *ZeroLogger) ErrorWithContext(message string, err error, ctx LogContext) {
 	z.logger.Error().Err(err).Fields(ctx).Msg(message)
 }
 
