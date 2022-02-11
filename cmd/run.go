@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/docplanner/helm-repo-updater/internal/app/logger"
 	"os"
 	"path"
@@ -87,7 +86,7 @@ var runCmd = &cobra.Command{
 
 			return
 		} else {
-			logger.Info("successfully parsed commit message template")
+			logger.Debug("successfully parsed commit message template")
 
 			gitConf.Message = tpl
 		}
@@ -123,30 +122,29 @@ func loadLogger(logLevel, logStashProtocol, logStashAddr string) logger.Logger {
 func runImageUpdater(cfg updater.HelmUpdaterConfig) error {
 	syncState := updater.NewSyncIterationState()
 
-	cfg.Logger.DebugWithContext("updating values", map[string]interface{}{
+	cfg.Logger.DebugWithContext("updating values", logger.LogContext{
 		"application": cfg.AppName,
 		"changes":     cfg.UpdateApps,
 	})
 
 	return func(cfg updater.HelmUpdaterConfig) error {
-		cfg.Logger.DebugWithContext("processing application file", map[string]interface{}{
+		cfg.Logger.DebugWithContext("processing application file", logger.LogContext{
 			"application": cfg.AppName,
 			"file":        cfg.File,
 		})
 
 		_, err := updater.UpdateApplication(cfg, syncState)
 		if err != nil {
-			cfg.Logger.Error(
-				fmt.Sprintf("can not update application: %s", cfg.AppName),
-				err,
-			)
+			cfg.Logger.ErrorWithContext("can not update application", err, logger.LogContext{
+				"application": cfg.AppName,
+			})
 
 			return err
 		}
 
-		cfg.Logger.Info(
-			fmt.Sprintf("application %s successfully updated", cfg.AppName),
-		)
+		cfg.Logger.InfoWithContext("application successfully updated", logger.LogContext{
+			"application": cfg.AppName,
+		})
 
 		return nil
 	}(cfg)

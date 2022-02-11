@@ -30,6 +30,10 @@ func (z *ZeroLogger) InfoWithContext(message string, ctx LogContext) {
 	z.logger.Info().Fields(ctx).Msg(message)
 }
 
+func (z *ZeroLogger) Debug(message string) {
+	z.logger.Info().Msg(message)
+}
+
 func (z *ZeroLogger) DebugWithContext(message string, ctx LogContext) {
 	z.logger.Info().Fields(ctx).Msg(message)
 }

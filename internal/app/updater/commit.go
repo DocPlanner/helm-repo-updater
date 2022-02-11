@@ -13,7 +13,7 @@ import (
 func UpdateApplication(cfg HelmUpdaterConfig, state *SyncIterationState) (*[]ChangeEntry, error) {
 	appsChanges, err := commitChangesLocked(cfg, state)
 	if err != nil {
-		cfg.Logger.WarningWithContext("could not update application spec", logger.LogContext{
+		cfg.Logger.ErrorWithContext("could not update application spec", err, logger.LogContext{
 			"application": cfg.AppName,
 			"error":       err.Error(),
 		})
