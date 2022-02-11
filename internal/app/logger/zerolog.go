@@ -94,7 +94,7 @@ func NewConsoleZeroLogger(lvl string) zerolog.Logger {
 	zerolog.SetGlobalLevel(logLevel)
 	zerolog.TimestampFieldName = "timestamp"
 
-	consoleWriter := newDiodeConsoleWriter(time.Second)
+	consoleWriter := newDiodeConsoleWriter(time.Millisecond)
 
 	return zerolog.New(consoleWriter).With().Timestamp().Logger()
 }
