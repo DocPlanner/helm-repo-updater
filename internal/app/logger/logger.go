@@ -13,7 +13,6 @@ type Logger interface {
 	Error(message string, err error)
 	ErrorWithContext(message string, err error, ctx LogContext)
 	Fatal(message string, err error)
-	Info(message string)
 	InfoWithContext(message string, ctx LogContext)
 	Debug(message string)
 	DebugWithContext(message string, ctx LogContext)
@@ -36,10 +35,6 @@ func (n *NullLogger) Error(_ string, _ error) {
 
 func (n *NullLogger) ErrorWithContext(_ string, _ error, _ LogContext) {
 	// yoink!
-}
-
-func (n NullLogger) Info(_ string) {
-	// nada!
 }
 
 func (n NullLogger) InfoWithContext(_ string, _ LogContext) {

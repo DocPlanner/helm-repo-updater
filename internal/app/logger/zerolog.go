@@ -22,10 +22,6 @@ type ZeroLogger struct {
 	logger zerolog.Logger
 }
 
-func (z *ZeroLogger) Info(message string) {
-	z.logger.Info().Msg(message)
-}
-
 func (z *ZeroLogger) InfoWithContext(message string, ctx LogContext) {
 	z.logger.Info().Fields(ctx).Msg(message)
 }
