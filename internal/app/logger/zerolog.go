@@ -27,11 +27,11 @@ func (z *ZeroLogger) InfoWithContext(message string, ctx LogContext) {
 }
 
 func (z *ZeroLogger) Debug(message string) {
-	z.logger.Info().Msg(message)
+	z.logger.Debug().Msg(message)
 }
 
 func (z *ZeroLogger) DebugWithContext(message string, ctx LogContext) {
-	z.logger.Info().Fields(ctx).Msg(message)
+	z.logger.Debug().Fields(ctx).Msg(message)
 }
 
 func (z *ZeroLogger) WarningWithContext(message string, ctx LogContext) {
