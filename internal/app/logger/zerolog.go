@@ -13,7 +13,7 @@ import (
 
 const (
 	localCacheSize  = 1000
-	elkPollInterval = 10 * time.Millisecond
+	elkPollInterval = 5 * time.Millisecond
 )
 
 var _ Logger = &ZeroLogger{}
