@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/argoproj-labs/argocd-image-updater/ext/git"
-	"github.com/argoproj-labs/argocd-image-updater/pkg/log"
+	"github.com/docplanner/helm-repo-updater/internal/app/log"
 )
 
 // UpdateApplication update all values of a single application.
