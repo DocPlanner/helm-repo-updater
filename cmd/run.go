@@ -6,8 +6,8 @@ import (
 	"path"
 	"text/template"
 
-	"github.com/argoproj-labs/argocd-image-updater/pkg/log"
 	"github.com/docplanner/helm-repo-updater/internal/app/git"
+	"github.com/docplanner/helm-repo-updater/internal/app/log"
 	"github.com/docplanner/helm-repo-updater/internal/app/updater"
 	"github.com/spf13/cobra"
 )

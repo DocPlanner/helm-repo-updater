@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"text/template"
 
-	"github.com/argoproj-labs/argocd-image-updater/pkg/log"
+	"github.com/docplanner/helm-repo-updater/internal/app/log"
 )
 
 type commitMessageChange struct {
