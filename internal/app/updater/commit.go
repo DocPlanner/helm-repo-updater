@@ -75,6 +75,8 @@ func initAndFetchGitRepository(repoUrl string, tempRoot string, creds git.Creds,
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		return nil, fmt.Errorf("it's necessary provide an username and an email for configure git client")
 	}
 
 	gitC, err = configureGitClientCredentials(gitC, gitCredentials)
