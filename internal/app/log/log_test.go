@@ -13,7 +13,7 @@ import (
 
 func Test_LogToStdout(t *testing.T) {
 	// We need tracing level
-	Log().SetLevel(logrus.TraceLevel)
+	logrus.SetLevel(logrus.TraceLevel)
 
 	t.Run("Test for Tracef() to log to stdout", func(t *testing.T) {
 		out, err := utils.CaptureStdout(func() {
@@ -58,7 +58,7 @@ func Test_LogToStdout(t *testing.T) {
 
 func Test_LogToStderr(t *testing.T) {
 	// We need tracing level
-	Log().SetLevel(logrus.TraceLevel)
+	logrus.SetLevel(logrus.TraceLevel)
 
 	t.Run("Test for Tracef() to log to stdout", func(t *testing.T) {
 		out, err := utils.CaptureStderr(func() {
@@ -99,7 +99,7 @@ func Test_LogToStderr(t *testing.T) {
 }
 
 func Test_LoggerFields(t *testing.T) {
-	Log().SetLevel(logrus.TraceLevel)
+	logrus.SetLevel(logrus.TraceLevel)
 	t.Run("Test for Tracef() to log correctly with fields", func(t *testing.T) {
 		out, err := utils.CaptureStdout(func() {
 			WithContext().AddField("foo", "bar").Tracef("this is a test")

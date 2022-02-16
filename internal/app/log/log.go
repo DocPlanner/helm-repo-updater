@@ -15,15 +15,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 )
-
-// Internal Logger object
-var logger *logrus.Logger
 
 // LogContext contains a structured context for logging
 type LogContext struct {
-	fields    logrus.Fields
+	fields    logger.Fields
 	normalOut io.Writer
 	errorOut  io.Writer
 	mutex     sync.RWMutex
@@ -32,7 +29,7 @@ type LogContext struct {
 // NewContext returns a LogContext with default settings
 func NewContext() *LogContext {
 	var logctx LogContext
-	logctx.fields = make(logrus.Fields)
+	logctx.fields = make(logger.Fields)
 	logctx.normalOut = os.Stdout
 	logctx.errorOut = os.Stderr
 	return &logctx
@@ -42,15 +39,15 @@ func NewContext() *LogContext {
 func SetLogLevel(logLevel string) error {
 	switch strings.ToLower(logLevel) {
 	case "trace":
-		logger.SetLevel(logrus.TraceLevel)
+		logger.SetLevel(logger.TraceLevel)
 	case "debug":
-		logger.SetLevel(logrus.DebugLevel)
+		logger.SetLevel(logger.DebugLevel)
 	case "info":
-		logger.SetLevel(logrus.InfoLevel)
+		logger.SetLevel(logger.InfoLevel)
 	case "warn":
-		logger.SetLevel(logrus.WarnLevel)
+		logger.SetLevel(logger.WarnLevel)
 	case "error":
-		logger.SetLevel(logrus.ErrorLevel)
+		logger.SetLevel(logger.ErrorLevel)
 	default:
 		return fmt.Errorf("invalid loglevel: %s", logLevel)
 	}
@@ -68,11 +65,6 @@ func (logctx *LogContext) AddField(key string, value interface{}) *LogContext {
 	logctx.fields[key] = value
 	logctx.mutex.Unlock()
 	return logctx
-}
-
-// Logger retrieves the native logger interface. Use with care.
-func Log() *logrus.Logger {
-	return logger
 }
 
 // Tracef logs a debug message for logctx to stdout
@@ -177,7 +169,9 @@ func disableLogColors() bool {
 
 // Initializes the logging subsystem with default values
 func init() {
-	logger = logrus.New()
-	logger.SetFormatter(&logrus.TextFormatter{DisableColors: disableLogColors()})
-	logger.SetLevel(logrus.DebugLevel)
+	logger.SetFormatter(&logger.TextFormatter{
+		DisableColors: disableLogColors(),
+		FullTimestamp: true,
+	})
+	logger.SetLevel(logger.DebugLevel)
 }
