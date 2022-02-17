@@ -6,7 +6,7 @@ import (
 	"path"
 
 	"github.com/argoproj-labs/argocd-image-updater/ext/git"
-	"github.com/argoproj-labs/argocd-image-updater/pkg/log"
+	"github.com/docplanner/helm-repo-updater/internal/app/log"
 	"github.com/docplanner/helm-repo-updater/internal/app/yq"
 )
 

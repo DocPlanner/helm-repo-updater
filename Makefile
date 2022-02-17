@@ -49,7 +49,7 @@ endif
 test: test-unit
 
 .PHONY: test-benchmark
-test-benchmark: isCIlaunch-test-deps
+test-benchmark: launch-test-deps
 	$(GO) test ${GO_TEST_DEFAULT_ARG} -cpu 1,2,4,8 -benchmem -bench .
 
 .PHONY: test-unit

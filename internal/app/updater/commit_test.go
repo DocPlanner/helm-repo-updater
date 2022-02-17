@@ -30,6 +30,52 @@ const (
 	isDevContainerEnvironmentName = "isDevContainer"
 )
 
+func TestUpdateApplicationDryRunNoChangesEntries(t *testing.T) {
+
+	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gCred := git.Credentials{
+		Email:      validGitCredentialsEmail,
+		Username:   validGitCredentialsUsername,
+		SSHPrivKey: sshPrivKeyData,
+	}
+
+	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
+
+	gConf := git.Conf{
+		RepoURL: validGitRepoURL,
+		Branch:  validGitRepoBranch,
+		File:    "",
+	}
+
+	changeEntries := []ChangeEntry{}
+
+	cfg := HelmUpdaterConfig{
+		DryRun:         true,
+		LogLevel:       "info",
+		AppName:        validHelmAppName,
+		UpdateApps:     changeEntries,
+		File:           validHelmAppFileToChange,
+		GitCredentials: &gCred,
+		GitConf:        &gConf,
+	}
+
+	syncState := NewSyncIterationState()
+	_, err = UpdateApplication(cfg, syncState)
+
+	expectedErrorMessage := "nothing to update, skipping commit"
+
+	assert.Error(t, err, expectedErrorMessage)
+}
+
 func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 
 	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
@@ -533,6 +579,60 @@ func TestUpdateApplication(t *testing.T) {
 		log.Fatal(err)
 	}
 	assert.DeepEqual(t, *apps, changeEntries)
+}
+
+func TestUpdateApplicationDryRunNoUsername(t *testing.T) {
+
+	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gCred := git.Credentials{
+		Email:      validGitCredentialsEmail,
+		Username:   "",
+		SSHPrivKey: sshPrivKeyData,
+	}
+
+	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
+
+	gConf := git.Conf{
+		RepoURL: validGitRepoURL,
+		Branch:  validGitRepoBranch,
+		File:    "",
+	}
+
+	changeEntry := ChangeEntry{
+		OldValue: "1.1.0",
+		NewValue: "1.2.0",
+		File:     "",
+		Key:      ".image.tag",
+	}
+	changeEntries := []ChangeEntry{
+		changeEntry,
+	}
+
+	cfg := HelmUpdaterConfig{
+		DryRun:         false,
+		LogLevel:       "info",
+		AppName:        validHelmAppName,
+		UpdateApps:     changeEntries,
+		File:           validHelmAppFileToChange,
+		GitCredentials: &gCred,
+		GitConf:        &gConf,
+	}
+
+	syncState := NewSyncIterationState()
+	_, err = UpdateApplication(cfg, syncState)
+
+	expectedErrorMessage := "it's necessary provide an username and an email for configure git client"
+
+	assert.Error(t, err, expectedErrorMessage)
 }
 
 func getSSHRepoHostnameAndPort() string {
