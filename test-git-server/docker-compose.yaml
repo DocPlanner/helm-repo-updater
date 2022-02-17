@@ -2,7 +2,7 @@ version: "3.6"
 services:
   git-server:
     build:
-      dockerfile: Dockerfile
+      dockerfile: test-git-server/Dockerfile
       context: ..
     container_name: git-server
     restart: always

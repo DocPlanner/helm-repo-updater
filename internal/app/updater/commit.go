@@ -54,7 +54,7 @@ func configureGitClientCredentials(gitC git.Client, gitCredentials git_hru.Crede
 // initAndFetchGitRepository initializes a local git repository and sets the remote origin
 // and fetches latest updates from origin
 func initAndFetchGitRepository(repoUrl string, tempRoot string, creds git.Creds, gitCredentials git_hru.Credentials) (git.Client, error) {
-	gitC, err := git.NewClientExt(repoUrl, tempRoot, creds, true, false, "")
+	gitC, err := git.NewClientExt(repoUrl, tempRoot, creds, false, false, "")
 	if err != nil {
 		return nil, err
 	}

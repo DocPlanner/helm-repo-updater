@@ -630,8 +630,6 @@ func TestUpdateApplicationDryRunNoUsername(t *testing.T) {
 	syncState := NewSyncIterationState()
 	_, err = UpdateApplication(cfg, syncState)
 
-	fmt.Printf("err: %s\n", err.Error())
-
 	expectedErrorMessage := "it's necessary provide an username and an email for configure git client"
 
 	assert.Error(t, err, expectedErrorMessage)
