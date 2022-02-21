@@ -5,15 +5,13 @@ import (
 	"io/ioutil"
 	"os"
 	"text/template"
+	"time"
 
-	"github.com/argoproj-labs/argocd-image-updater/ext/git"
-	git_hru "github.com/docplanner/helm-repo-updater/internal/app/git"
 	"github.com/docplanner/helm-repo-updater/internal/app/log"
-)
-
-const (
-	// default origin branch
-	defaultOriginBranch = "origin"
+	git "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/plumbing/transport"
 )
 
 // UpdateApplication update all values of a single application.
@@ -40,61 +38,53 @@ func commitChangesLocked(cfg HelmUpdaterConfig, state *SyncIterationState) (*[]C
 	return commitChangesGit(cfg, writeOverrides)
 }
 
-// configureGitClientCredentials set username and e-mail address in gitClient to identify the committer
-func configureGitClientCredentials(gitC git.Client, gitCredentials git_hru.Credentials) (git.Client, error) {
-	if gitCredentials.Username != "" && gitCredentials.Email != "" {
-		err := gitC.Config(gitCredentials.Username, gitCredentials.Email)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return gitC, nil
-}
-
-// initAndFetchGitRepository initializes a local git repository and sets the remote origin
-// and fetches latest updates from origin
-func initAndFetchGitRepository(repoUrl string, tempRoot string, creds git.Creds, gitCredentials git_hru.Credentials) (git.Client, error) {
-	gitC, err := git.NewClientExt(repoUrl, tempRoot, creds, false, false, "")
+// cloneRepository clones the git repository in a temporal directory.
+func cloneRepository(appName string, repoUrl string, authCreds transport.AuthMethod, tempRoot string) (*git.Repository, error) {
+	logCtx := log.WithContext().AddField("application", appName)
+	logCtx.Infof("git clone %s ", repoUrl)
+	r, err := git.PlainClone(tempRoot, false, &git.CloneOptions{
+		Auth:     authCreds,
+		URL:      repoUrl,
+		Progress: os.Stdout,
+	})
 	if err != nil {
 		return nil, err
 	}
-
-	err = gitC.Init()
-	if err != nil {
-		return nil, err
-	}
-
-	err = gitC.Fetch("")
-	if err != nil {
-		return nil, err
-	}
-
-	// Set username and e-mail address used to identify the commiter
-	if gitCredentials.Username != "" && gitCredentials.Email != "" {
-		err = gitC.Config(gitCredentials.Username, gitCredentials.Email)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		return nil, fmt.Errorf("it's necessary provide an username and an email for configure git client")
-	}
-
-	gitC, err = configureGitClientCredentials(gitC, gitCredentials)
-	if err != nil {
-		return nil, err
-	}
-
-	return gitC, nil
+	return r, nil
 }
 
 // commitAndPushGitChanges perfoms a git commit for the given pathSpec to the currently checked
 // out branch and after pushes local changes to the remote branch
-func commitAndPushGitChanges(gitC git.Client, opts *git.CommitOptions, checkOutBranch string) error {
-	err := gitC.Commit("", opts)
+func commitAndPushGitChanges(appName string, commitMessage string, gitW git.Worktree, gitUserName string, gitEmail string, tempRoot string, gitAuth transport.AuthMethod) error {
+	logCtx := log.WithContext().AddField("application", appName)
+	logCtx.Infof("git commit -m %s ", commitMessage)
+	commit, err := gitW.Commit(commitMessage, &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  gitUserName,
+			Email: gitEmail,
+			When:  time.Now(),
+		},
+	})
 	if err != nil {
 		return err
 	}
-	err = gitC.Push(defaultOriginBranch, checkOutBranch, false)
+	r, err := git.PlainOpen(tempRoot)
+	if err != nil {
+		return err
+	}
+	// Prints the current HEAD to verify that all worked well.
+	logCtx.Debugf("git show -s")
+	obj, err := r.CommitObject(commit)
+	if err != nil {
+		return err
+	}
+	logCtx.Infof("obj: %s", obj)
+
+	logCtx.Infof("git push")
+	// push using default options
+	err = r.Push(&git.PushOptions{
+		Auth: gitAuth,
+	})
 	if err != nil {
 		return err
 	}
@@ -103,7 +93,7 @@ func commitAndPushGitChanges(gitC git.Client, opts *git.CommitOptions, checkOutB
 
 // configureCommitOptions creates a git.CommitOptions based in the appName the apps to
 // change and the helm repo updater config message template generated
-func configureCommitOptions(appName string, apps []ChangeEntry, helmUpdaterConfigMessage *template.Template) (*git.CommitOptions, error) {
+func configureCommitMessage(appName string, apps []ChangeEntry, helmUpdaterConfigMessage *template.Template) (*string, error) {
 	var gitCommitMessage string
 
 	logCtx := log.WithContext().AddField("application", appName)
@@ -112,9 +102,8 @@ func configureCommitOptions(appName string, apps []ChangeEntry, helmUpdaterConfi
 		gitCommitMessage = TemplateCommitMessage(helmUpdaterConfigMessage, appName, apps)
 	}
 
-	commitOpts := &git.CommitOptions{}
 	if gitCommitMessage != "" {
-		cm, err := ioutil.TempFile("", "image-updater-commit-msg")
+		cm, err := ioutil.TempFile("", appName)
 		if err != nil {
 			return nil, fmt.Errorf("cold not create temp file: %v", err)
 		}
@@ -124,11 +113,11 @@ func configureCommitOptions(appName string, apps []ChangeEntry, helmUpdaterConfi
 			_ = cm.Close()
 			return nil, fmt.Errorf("could not write commit message to %s: %v", cm.Name(), err)
 		}
-		commitOpts.CommitMessagePath = cm.Name()
+		gitCommitMessage = cm.Name()
 		_ = cm.Close()
 		defer os.Remove(cm.Name())
 	}
-	return commitOpts, nil
+	return &gitCommitMessage, nil
 }
 
 // createTempFileInDirectory creates a temporal directory where a copy of
@@ -139,6 +128,7 @@ func createTempFileInDirectory(dirName string, applicationName string) (*string,
 	if err != nil {
 		return nil, err
 	}
+	logCtx.Debugf("Created temporal directory to clone repository %s", tempRoot)
 	defer func() {
 		err := os.RemoveAll(tempRoot)
 		if err != nil {
@@ -148,20 +138,76 @@ func createTempFileInDirectory(dirName string, applicationName string) (*string,
 	return &tempRoot, nil
 }
 
-func getCheckoutBranchAndSystemRef(gitConfBranch string, applicationName string, gitC git.Client) (*string, error) {
+// checkBranchExists check if a specific branch in a repository was already created in the origin
+func checkBranchExists(gitR git.Repository, checkOutBranch plumbing.ReferenceName) error {
+	_, err := gitR.ResolveRevision(plumbing.Revision(checkOutBranch))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func getCheckoutName(gitConfBranch string, applicationName string, gitR git.Repository) (*plumbing.ReferenceName, error) {
+	var checkOutBranch plumbing.ReferenceName
 	logCtx := log.WithContext().AddField("application", applicationName)
-	checkOutBranch := gitConfBranch
 
 	logCtx.Tracef("targetRevision for update is '%s'", checkOutBranch)
 
-	if checkOutBranch == "" || checkOutBranch == "HEAD" {
-		checkOutBranch, err := gitC.SymRefToBranch(checkOutBranch)
-		logCtx.Infof("resolved remote default branch to '%s' and using that for operations", checkOutBranch)
+	if gitConfBranch == "" || gitConfBranch == "HEAD" {
+		// retrieving the branch being pointed by head
+		ref, err := gitR.Head()
 		if err != nil {
 			return nil, err
 		}
+		checkOutBranch = ref.Name()
+		return &checkOutBranch, nil
 	}
+	checkOutBranch = plumbing.NewBranchReferenceName(gitConfBranch)
 	return &checkOutBranch, nil
+}
+
+func getGitRepositoryWithBranchUpdated(gitW git.Worktree, gitR git.Repository,
+	creds transport.AuthMethod, gitConfBranch string, appName string) (*git.Worktree, error) {
+	checkOutBranch, err := getCheckoutName(gitConfBranch, appName, gitR)
+	if err != nil {
+		return nil, err
+	}
+
+	err = gitW.Checkout(&git.CheckoutOptions{
+		Branch: *checkOutBranch,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = checkBranchExists(gitR, *checkOutBranch)
+	if err != nil {
+		return nil, err
+	}
+
+	// Pull the latest changes from the origin remote and merge into the current branch
+	log.Infof("git pull origin")
+	err = gitW.Pull(&git.PullOptions{
+		RemoteName: "origin",
+		Auth:       creds,
+	})
+	if err != nil {
+		if err.Error() != "already up-to-date" {
+			return nil, err
+		}
+	}
+
+	// Print the latest commit that was just pulled
+	ref, err := gitR.Head()
+	if err != nil {
+		return nil, err
+	}
+	commit, err := gitR.CommitObject(ref.Hash())
+	if err != nil {
+		return nil, err
+	}
+	log.Debugf("The latest commit to the branch %s is %s", checkOutBranch, commit)
+	return &gitW, nil
 }
 
 // commitChangesGit commits any changes required for updating one or more values
@@ -171,38 +217,37 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 
 	logCtx := log.WithContext().AddField("application", cfg.AppName)
 
-	creds, err := cfg.GitCredentials.NewGitCreds(cfg.GitConf.RepoURL)
+	creds, err := cfg.GitCredentials.NewGitCreds(cfg.GitConf.RepoURL, cfg.GitCredentials.Password)
 	if err != nil {
 		return nil, fmt.Errorf("could not get creds for repo '%s': %v", cfg.AppName, err)
 	}
-	var gitC git.Client
 
 	tempRoot, err := createTempFileInDirectory(fmt.Sprintf("git-%s", cfg.AppName), cfg.AppName)
 	if err != nil {
 		return nil, err
 	}
 
-	gitC, err = initAndFetchGitRepository(cfg.GitConf.RepoURL, *tempRoot, creds, *cfg.GitCredentials)
+	gitR, err := cloneRepository(cfg.AppName, cfg.GitConf.RepoURL, creds, *tempRoot)
 	if err != nil {
 		return nil, err
 	}
 
-	checkOutBranch, err := getCheckoutBranchAndSystemRef(cfg.GitConf.Branch, cfg.AppName, gitC)
+	gitW, err := gitR.Worktree()
 	if err != nil {
 		return nil, err
 	}
 
-	err = gitC.Checkout(*checkOutBranch)
+	gitW, err = getGitRepositoryWithBranchUpdated(*gitW, *gitR, creds, cfg.GitConf.Branch, cfg.AppName)
 	if err != nil {
 		return nil, err
 	}
 
 	// write changes to files
-	if apps, err = write(cfg, gitC); err != nil {
+	if apps, err = write(cfg, *tempRoot, *gitW); err != nil {
 		return nil, err
 	}
 
-	commitOpts, err := configureCommitOptions(cfg.AppName, apps, cfg.GitConf.Message)
+	commitMessage, err := configureCommitMessage(cfg.AppName, apps, cfg.GitConf.Message)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +257,7 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 		return &apps, nil
 	}
 
-	err = commitAndPushGitChanges(gitC, commitOpts, *checkOutBranch)
+	err = commitAndPushGitChanges(cfg.AppName, *commitMessage, *gitW, cfg.GitCredentials.Username, cfg.GitCredentials.Email, *tempRoot, creds)
 	if err != nil {
 		return nil, err
 	}

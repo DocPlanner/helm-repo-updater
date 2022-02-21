@@ -2,8 +2,17 @@ package git
 
 import (
 	"fmt"
+	"regexp"
 
-	"github.com/argoproj-labs/argocd-image-updater/ext/git"
+	"github.com/docplanner/helm-repo-updater/internal/app/log"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+)
+
+var (
+	sshURLRegex   = regexp.MustCompile("^(ssh://)?([^/:]*?)@[^@]+$")
+	httpsURLRegex = regexp.MustCompile("^(https://).*")
 )
 
 // Credentials is a git credential config
@@ -14,40 +23,69 @@ type Credentials struct {
 	SSHPrivKey string
 }
 
-// NewGitCreds returns the credentials for the given repo url.
-func (c Credentials) NewGitCreds(repoURL string) (git.Creds, error) {
-	if isSshUrl(repoURL) {
-		return c.fromSsh(repoURL)
+// NewGitCloneOpts returns the options that are going to be used to clone the repository.
+func (c Credentials) NewGitCreds(repoURL string, password string) (transport.AuthMethod, error) {
+	if isSSHURL(repoURL) {
+		gitSSHCredentials, err := c.fromSsh(repoURL, password)
+		if err != nil {
+			return nil, err
+		}
+		return gitSSHCredentials, nil
 	}
 
-	if isHttpsUrl(repoURL) {
-		return c.fromHttps(repoURL)
+	if isHTTPSURL(repoURL) {
+		gitCreds, err := c.fromHttps(repoURL)
+		if err != nil {
+			return nil, err
+		}
+		return gitCreds, nil
 	}
 
 	return nil, unknownRepositoryType(repoURL)
 }
 
-func isSshUrl(repoUrl string) bool {
-	ok, _ := git.IsSSHURL(repoUrl)
-
-	return ok
+// IsSSHURL returns true if supplied URL is SSH URL
+func isSSHURL(url string) bool {
+	matches := sshURLRegex.FindStringSubmatch(url)
+	return len(matches) > 2
 }
 
-func isHttpsUrl(repoUrl string) bool {
-	return git.IsHTTPSURL(repoUrl)
+// IsHTTPSURL returns true if supplied URL is HTTPS URL
+func isHTTPSURL(url string) bool {
+	return httpsURLRegex.MatchString(url)
 }
 
-func (c Credentials) fromSsh(repoUrl string) (git.Creds, error) {
+func generateAuthForSSH(repoUrl string, userName string, privateKeyFile string, password string) (ssh.AuthMethod, error) {
+	publicKeys, err := ssh.NewPublicKeysFromFile("git", privateKeyFile, password)
+	if err != nil {
+		log.Warnf("generate publickeys failed: %s\n", err.Error())
+		return nil, err
+	}
+	return publicKeys, err
+}
+
+func generatAuthForHttps(username string, password string) *http.BasicAuth {
+	return &http.BasicAuth{
+		Username: username,
+		Password: password,
+	}
+}
+
+func (c Credentials) fromSsh(repoUrl string, password string) (ssh.AuthMethod, error) {
 	if c.allowsSshAuth() {
-		return git.NewSSHCreds(c.SSHPrivKey, "", true), nil
+		sshPublicKeys, err := generateAuthForSSH(repoUrl, c.Username, c.SSHPrivKey, password)
+		if err != nil {
+			return nil, err
+		}
+		return sshPublicKeys, nil
 	}
 
 	return nil, sshPrivateKeyNotProvided(repoUrl)
 }
 
-func (c Credentials) fromHttps(repoURL string) (git.Creds, error) {
+func (c Credentials) fromHttps(repoURL string) (*http.BasicAuth, error) {
 	if c.allowsHttpsAuth() {
-		return git.NewHTTPSCreds(c.Username, c.Password, "", "", true, ""), nil
+		return generatAuthForHttps(c.Username, c.Password), nil
 	}
 
 	return nil, httpsUserAndPasswordNotProvided(repoURL)

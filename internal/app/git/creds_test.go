@@ -5,21 +5,22 @@ import (
 	"log"
 	"testing"
 
-	"github.com/argoproj-labs/argocd-image-updater/ext/git"
 	app_utils "github.com/docplanner/helm-repo-updater/internal/app/utils"
-	"github.com/google/go-cmp/cmp"
-	"gotest.tools/v3/assert"
+	"gotest.tools/assert"
 )
 
-const validGitCredentialsEmail = "test-user@docplanner.com"
-const validGitCredentialsUsername = "test-user"
-const validGitCredentialsPassword = "test-password"
-const validSSHPrivKeyRelativeRoute = "/test-git-server/private_keys/helm-repo-updater-test"
-const validGitRepoSSHURL = "git@github.com:kubernetes/kubernetes.git"
-const validGitRepoHTTPSURL = "https://github.com/kubernetes/kubernetes.git"
-const invalidGitRepoURL = "github.com/kubernetes/kubernetes.git"
+const (
+	validGitCredentialsEmail     = "test-user@docplanner.com"
+	validGitCredentialsUsername  = "test-user"
+	validGitCredentialsPassword  = "test-password"
+	validSSHPrivKeyRelativeRoute = "/test-git-server/private_keys/helm-repo-updater-test"
+	validGitRepoSSHURL           = "git@github.com:kubernetes/kubernetes.git"
+	validGitRepoHTTPSURL         = "https://github.com/kubernetes/kubernetes.git"
+	invalidGitRepoURL            = "github.com/kubernetes/kubernetes.git"
+	invalidPrivKeyRoute          = "/tmp/key-dont-exists"
+)
 
-func TestNewCredsSSHURLSShPrivKey(t *testing.T) {
+func TestNewCredsSSHURLSSHPrivKey(t *testing.T) {
 
 	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
 	if err != nil {
@@ -27,21 +28,20 @@ func TestNewCredsSSHURLSShPrivKey(t *testing.T) {
 	}
 
 	g := Credentials{
+		Username:   validGitCredentialsUsername,
 		Email:      validGitCredentialsEmail,
 		SSHPrivKey: *sshPrivKeyRoute,
 	}
 
 	repoURL := validGitRepoSSHURL
 
-	creds, err := g.NewGitCreds(repoURL)
-
+	creds, err := g.NewGitCreds(repoURL, g.Password)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	expectedCreds := git.NewSSHCreds(*sshPrivKeyRoute, "", true)
-
-	assert.DeepEqual(t, creds, expectedCreds, cmp.AllowUnexported(git.SSHCreds{}))
+	expectedCredsString := "user: git, name: ssh-public-keys"
+	assert.DeepEqual(t, creds.String(), expectedCredsString)
 }
 
 func TestNewCredsHTPPSURLUsernamePassword(t *testing.T) {
@@ -52,15 +52,34 @@ func TestNewCredsHTPPSURLUsernamePassword(t *testing.T) {
 		Password: validGitCredentialsPassword,
 	}
 
-	creds, err := g.NewGitCreds(validGitRepoHTTPSURL)
+	creds, err := g.NewGitCreds(validGitRepoHTTPSURL, g.Password)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	expectedCreds := git.NewHTTPSCreds(g.Username, g.Password, "", "", true, "")
+	expectedCredsString := fmt.Sprintf("http-basic-auth - %s:*******", g.Username)
+	assert.DeepEqual(t, creds.String(), expectedCredsString)
+}
 
-	assert.DeepEqual(t, creds, expectedCreds, cmp.AllowUnexported(git.HTTPSCreds{}))
+func TestNewCredsSSHURLSSHErroCreatingPublicKeys(t *testing.T) {
+
+	g := Credentials{
+		Username:   validGitCredentialsUsername,
+		Email:      validGitCredentialsEmail,
+		SSHPrivKey: invalidPrivKeyRoute,
+	}
+
+	repoURL := validGitRepoSSHURL
+
+	_, err := g.NewGitCreds(repoURL, g.Password)
+
+	expectedErrorMessage := fmt.Sprintf(
+		"open %s: no such file or directory",
+		invalidPrivKeyRoute,
+	)
+
+	assert.Error(t, err, expectedErrorMessage)
 }
 
 func TestNewCredsSSHURLWithoutSShPrivKey(t *testing.T) {
@@ -72,7 +91,7 @@ func TestNewCredsSSHURLWithoutSShPrivKey(t *testing.T) {
 
 	repoURL := validGitRepoSSHURL
 
-	_, err := g.NewGitCreds(repoURL)
+	_, err := g.NewGitCreds(repoURL, g.Password)
 
 	expectedErrorMessage := fmt.Sprintf(
 		"sshPrivKey not provided for authenticatication to repository %s",
@@ -92,7 +111,7 @@ func TestNewCredsHTPPSURLWithoutUsernameWithPassword(t *testing.T) {
 
 	repoURL := validGitRepoHTTPSURL
 
-	_, err := g.NewGitCreds(repoURL)
+	_, err := g.NewGitCreds(repoURL, g.Password)
 
 	expectedErrorMessage := fmt.Sprintf(
 		"no value provided for username and password for authentication to repository %s",
@@ -112,7 +131,7 @@ func TestNewCredsHTPPSURLWitUsernameWithoutPassword(t *testing.T) {
 
 	repoURL := validGitRepoHTTPSURL
 
-	_, err := g.NewGitCreds(repoURL)
+	_, err := g.NewGitCreds(repoURL, g.Password)
 
 	expectedErrorMessage := fmt.Sprintf(
 		"no value provided for username and password for authentication to repository %s",
@@ -132,7 +151,7 @@ func TestNewCredsInvalidURL(t *testing.T) {
 
 	repoURL := invalidGitRepoURL
 
-	_, err := g.NewGitCreds(repoURL)
+	_, err := g.NewGitCreds(repoURL, g.Password)
 
 	expectedErrorMessage := fmt.Sprintf(
 		"unknown repository type for git repository URL %s",

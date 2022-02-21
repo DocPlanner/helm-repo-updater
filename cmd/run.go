@@ -119,7 +119,6 @@ func runImageUpdater(cfg updater.HelmUpdaterConfig) error {
 
 		_, err := updater.UpdateApplication(cfg, syncState)
 		if err != nil {
-			fmt.Printf("err is %v\n", err)
 			return err
 		}
 

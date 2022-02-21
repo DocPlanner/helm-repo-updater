@@ -37,7 +37,6 @@ func TestUpdateApplicationDryRunNoChangesEntries(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,7 +44,7 @@ func TestUpdateApplicationDryRunNoChangesEntries(t *testing.T) {
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: sshPrivKeyData,
+		SSHPrivKey: *sshPrivKeyRoute,
 	}
 
 	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
@@ -83,7 +82,6 @@ func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -91,12 +89,10 @@ func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: sshPrivKeyData,
+		SSHPrivKey: *sshPrivKeyRoute,
 	}
 
 	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
-
-	fmt.Printf("validGitRepoURL: %s\n", validGitRepoURL)
 
 	gConf := git.Conf{
 		RepoURL: validGitRepoURL,
@@ -141,7 +137,6 @@ func TestUpdateApplicationDryRun(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -149,7 +144,7 @@ func TestUpdateApplicationDryRun(t *testing.T) {
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: sshPrivKeyData,
+		SSHPrivKey: *sshPrivKeyRoute,
 	}
 
 	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
@@ -197,7 +192,6 @@ func TestUpdateApplicationDryRunNoRepoURL(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -205,7 +199,7 @@ func TestUpdateApplicationDryRunNoRepoURL(t *testing.T) {
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: sshPrivKeyData,
+		SSHPrivKey: *sshPrivKeyRoute,
 	}
 
 	gConf := git.Conf{
@@ -248,7 +242,6 @@ func TestUpdateApplicationDryRunInvalidGitRepo(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -256,7 +249,7 @@ func TestUpdateApplicationDryRunInvalidGitRepo(t *testing.T) {
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: sshPrivKeyData,
+		SSHPrivKey: *sshPrivKeyRoute,
 	}
 
 	invalidGitRepoURL := getSSHRepoHostnameAndPort() + invalidGitRepoRoute
@@ -289,8 +282,8 @@ func TestUpdateApplicationDryRunInvalidGitRepo(t *testing.T) {
 
 	syncState := NewSyncIterationState()
 	_, err = UpdateApplication(cfg, syncState)
-	assert.ErrorContains(t, err, fmt.Sprintf("fatal: '%s' does not appear to be a git repository", invalidGitRepoRoute))
-	assert.ErrorContains(t, err, "fatal: Could not read from remote repository.")
+	expectErrorMessage := "repository not found"
+	assert.Error(t, err, expectErrorMessage)
 }
 
 func TestUpdateApplicationDryRunInvalidGitBranch(t *testing.T) {
@@ -300,7 +293,6 @@ func TestUpdateApplicationDryRunInvalidGitBranch(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -308,7 +300,7 @@ func TestUpdateApplicationDryRunInvalidGitBranch(t *testing.T) {
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: sshPrivKeyData,
+		SSHPrivKey: *sshPrivKeyRoute,
 	}
 
 	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
@@ -341,61 +333,8 @@ func TestUpdateApplicationDryRunInvalidGitBranch(t *testing.T) {
 
 	syncState := NewSyncIterationState()
 	_, err = UpdateApplication(cfg, syncState)
-	expectedErrorMessage := fmt.Sprintf("`git checkout --force %s` failed exit status 1: error: pathspec '%s' did not match any file(s) known to git", invalidGitRepoBranch, invalidGitRepoBranch)
 
-	assert.Error(t, err, expectedErrorMessage)
-}
-
-func TestUpdateApplicationDryRuNoBranch(t *testing.T) {
-
-	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	gCred := git.Credentials{
-		Email:      validGitCredentialsEmail,
-		Username:   validGitCredentialsUsername,
-		SSHPrivKey: sshPrivKeyData,
-	}
-
-	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
-
-	gConf := git.Conf{
-		RepoURL: validGitRepoURL,
-		Branch:  "",
-		File:    "",
-	}
-
-	changeEntry := ChangeEntry{
-		OldValue: "1.0.0",
-		NewValue: "1.1.0",
-		File:     "",
-		Key:      ".image.tag",
-	}
-	changeEntries := []ChangeEntry{
-		changeEntry,
-	}
-
-	cfg := HelmUpdaterConfig{
-		DryRun:         true,
-		LogLevel:       "info",
-		AppName:        validHelmAppName,
-		UpdateApps:     changeEntries,
-		File:           validHelmAppFileToChange,
-		GitCredentials: &gCred,
-		GitConf:        &gConf,
-	}
-
-	syncState := NewSyncIterationState()
-	_, err = UpdateApplication(cfg, syncState)
-	expectedErrorMessage := "could not resolve symbolic ref '': `git symbolic-ref ` failed exit status 128: fatal: No such ref:"
-
+	expectedErrorMessage := "reference not found"
 	assert.Error(t, err, expectedErrorMessage)
 }
 
@@ -411,7 +350,6 @@ func TestUpdateApplicationDryRunWithGitMessage(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -419,7 +357,7 @@ func TestUpdateApplicationDryRunWithGitMessage(t *testing.T) {
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: sshPrivKeyData,
+		SSHPrivKey: *sshPrivKeyRoute,
 	}
 
 	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
@@ -468,7 +406,6 @@ func TestUpdateApplicationDryRunInvalidKey(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -476,7 +413,7 @@ func TestUpdateApplicationDryRunInvalidKey(t *testing.T) {
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: sshPrivKeyData,
+		SSHPrivKey: *sshPrivKeyRoute,
 	}
 
 	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
@@ -534,7 +471,6 @@ func TestUpdateApplication(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -542,7 +478,7 @@ func TestUpdateApplication(t *testing.T) {
 	gCred := git.Credentials{
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
-		SSHPrivKey: sshPrivKeyData,
+		SSHPrivKey: *sshPrivKeyRoute,
 	}
 
 	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
@@ -581,60 +517,6 @@ func TestUpdateApplication(t *testing.T) {
 	assert.DeepEqual(t, *apps, changeEntries)
 }
 
-func TestUpdateApplicationDryRunNoUsername(t *testing.T) {
-
-	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	sshPrivKeyData, err := loadSSHKeyPath(*sshPrivKeyRoute)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	gCred := git.Credentials{
-		Email:      validGitCredentialsEmail,
-		Username:   "",
-		SSHPrivKey: sshPrivKeyData,
-	}
-
-	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
-
-	gConf := git.Conf{
-		RepoURL: validGitRepoURL,
-		Branch:  validGitRepoBranch,
-		File:    "",
-	}
-
-	changeEntry := ChangeEntry{
-		OldValue: "1.1.0",
-		NewValue: "1.2.0",
-		File:     "",
-		Key:      ".image.tag",
-	}
-	changeEntries := []ChangeEntry{
-		changeEntry,
-	}
-
-	cfg := HelmUpdaterConfig{
-		DryRun:         false,
-		LogLevel:       "info",
-		AppName:        validHelmAppName,
-		UpdateApps:     changeEntries,
-		File:           validHelmAppFileToChange,
-		GitCredentials: &gCred,
-		GitConf:        &gConf,
-	}
-
-	syncState := NewSyncIterationState()
-	_, err = UpdateApplication(cfg, syncState)
-
-	expectedErrorMessage := "it's necessary provide an username and an email for configure git client"
-
-	assert.Error(t, err, expectedErrorMessage)
-}
-
 func getSSHRepoHostnameAndPort() string {
 	_, isCI := os.LookupEnv(ciDiscoveryEnvironmentName)
 	_, isDevContainerEnvironment := os.LookupEnv(isDevContainerEnvironmentName)
@@ -642,13 +524,4 @@ func getSSHRepoHostnameAndPort() string {
 		return SSHRepoLocalHostname
 	}
 	return SSHRepoCIHostname
-}
-
-func loadSSHKeyPath(sshPrivKeyPath string) (string, error) {
-	dat, err := os.ReadFile(sshPrivKeyPath)
-	if err != nil {
-		return "", err
-	}
-
-	return string(dat), nil
 }
