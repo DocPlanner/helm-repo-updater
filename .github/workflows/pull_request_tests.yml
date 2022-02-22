@@ -49,4 +49,4 @@ jobs:
       - run: make test-coverage
         env:
           isCI: true
-          SSH_KNOWN_HOSTS: "~/.ssh/known_hosts"
+          SSH_KNOWN_HOSTS: "${HOME}/.ssh/known_hosts"
