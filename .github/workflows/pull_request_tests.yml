@@ -47,9 +47,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - run: make build
+      - name: Build app
+        run: make build
 
-      - run: make test-coverage
+      - name: Launch unit tests
+        run: make test-coverage
         env:
           isCI: true
           SSH_KNOWN_HOSTS: "/root/.ssh/known_hosts"
