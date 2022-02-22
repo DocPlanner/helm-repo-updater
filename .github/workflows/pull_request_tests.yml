@@ -46,8 +46,6 @@ jobs:
 
       - run: make build
 
-      - run: echo ${SSH_KNOWN_HOSTS}
-
       - run: make test-coverage
         env:
           isCI: true
