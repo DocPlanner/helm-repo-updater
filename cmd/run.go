@@ -112,8 +112,6 @@ func runImageUpdater(cfg updater.HelmUpdaterConfig) error {
 
 	syncState := updater.NewSyncIterationState()
 
-	fmt.Println(cfg.UpdateApps)
-
 	err := func(cfg updater.HelmUpdaterConfig) error {
 		log.Debugf("Processing application %s in directory %s", cfg.AppName, cfg.File)
 

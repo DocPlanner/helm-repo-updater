@@ -29,8 +29,6 @@ func writeOverrides(cfg HelmUpdaterConfig, tempRoot string, gitW git.Worktree) (
 		return apps, err
 	}
 
-	fmt.Printf("Target file to add is %s\n", targetFile)
-
 	apps = overrideValues(apps, cfg, targetFile)
 
 	if len(apps) == 0 {
@@ -82,7 +80,6 @@ func overrideValues(apps []ChangeEntry, cfg HelmUpdaterConfig, targetFile string
 		}
 		newEntry.NewValue = *newValue
 
-		fmt.Printf("oldValue is %s\n", *oldValue)
 		// check if there is any change
 		if oldValue == newValue {
 			logCtx.Infof("target for key %s is the same, skipping", app.Key)

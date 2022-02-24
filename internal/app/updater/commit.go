@@ -60,16 +60,11 @@ func commitAndPushGitChanges(cfg HelmUpdaterConfig, commitMessage string, gitW g
 	apps []ChangeEntry) error {
 	logCtx := log.WithContext().AddField("application", cfg.AppName)
 
-	for _, app := range apps {
-		fmt.Printf("app is %v\n", app)
-		targetFile := path.Join(cfg.GitConf.File, cfg.File)
-		fmt.Printf("targetFile is %s\n", targetFile)
-		logCtx.Infof("git add %s", targetFile)
-		_, err := gitW.Add(targetFile)
-		if err != nil {
-			fmt.Println("Falla en el git add")
-			return err
-		}
+	targetFile := path.Join(cfg.GitConf.File, cfg.File)
+	logCtx.Infof("adding file %s to git for commit changes", targetFile)
+	_, err := gitW.Add(targetFile)
+	if err != nil {
+		return err
 	}
 
 	// We can verify the current status of the worktree using the method Status.
