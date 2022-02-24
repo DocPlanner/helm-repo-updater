@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"text/template"
 	"time"
 
@@ -41,7 +42,7 @@ func commitChangesLocked(cfg HelmUpdaterConfig, state *SyncIterationState) (*[]C
 // cloneRepository clones the git repository in a temporal directory.
 func cloneRepository(appName string, repoUrl string, authCreds transport.AuthMethod, tempRoot string) (*git.Repository, error) {
 	logCtx := log.WithContext().AddField("application", appName)
-	logCtx.Infof("git clone %s ", repoUrl)
+	logCtx.Infof("Cloning git repository %s in temporal folder located in %s", repoUrl, tempRoot)
 	r, err := git.PlainClone(tempRoot, false, &git.CloneOptions{
 		Auth:     authCreds,
 		URL:      repoUrl,
@@ -55,13 +56,36 @@ func cloneRepository(appName string, repoUrl string, authCreds transport.AuthMet
 
 // commitAndPushGitChanges perfoms a git commit for the given pathSpec to the currently checked
 // out branch and after pushes local changes to the remote branch
-func commitAndPushGitChanges(appName string, commitMessage string, gitW git.Worktree, gitUserName string, gitEmail string, tempRoot string, gitAuth transport.AuthMethod) error {
-	logCtx := log.WithContext().AddField("application", appName)
+func commitAndPushGitChanges(cfg HelmUpdaterConfig, commitMessage string, gitW git.Worktree, tempRoot string, gitAuth transport.AuthMethod,
+	apps []ChangeEntry) error {
+	logCtx := log.WithContext().AddField("application", cfg.AppName)
+
+	for _, app := range apps {
+		fmt.Printf("app is %v\n", app)
+		targetFile := path.Join(cfg.GitConf.File, cfg.File)
+		fmt.Printf("targetFile is %s\n", targetFile)
+		logCtx.Infof("git add %s", targetFile)
+		_, err := gitW.Add(targetFile)
+		if err != nil {
+			fmt.Println("Falla en el git add")
+			return err
+		}
+	}
+
+	// We can verify the current status of the worktree using the method Status.
+	logCtx.Infof("git status --porcelain")
+	status, err := gitW.Status()
+	if err != nil {
+		return err
+	}
+
+	logCtx.Infof("status is: %s", status)
+
 	logCtx.Infof("git commit -m %s ", commitMessage)
-	commit, err := gitW.Commit(commitMessage, &git.CommitOptions{
+	commit, err := gitW.Commit("Updating to value", &git.CommitOptions{
 		Author: &object.Signature{
-			Name:  gitUserName,
-			Email: gitEmail,
+			Name:  cfg.GitCredentials.Username,
+			Email: cfg.GitCredentials.Email,
 			When:  time.Now(),
 		},
 	})
@@ -122,13 +146,13 @@ func configureCommitMessage(appName string, apps []ChangeEntry, helmUpdaterConfi
 
 // createTempFileInDirectory creates a temporal directory where a copy of
 // the git repository is going to be stored.
-func createTempFileInDirectory(dirName string, applicationName string) (*string, error) {
+func CreateTempFileInDirectory(dirName string, applicationName string, repoURL string) (*string, error) {
 	logCtx := log.WithContext().AddField("application", applicationName)
 	tempRoot, err := ioutil.TempDir(os.TempDir(), dirName)
 	if err != nil {
 		return nil, err
 	}
-	logCtx.Debugf("Created temporal directory to clone repository %s", tempRoot)
+	logCtx.Debugf("Created temporal directory %s to clone repository %s", tempRoot, repoURL)
 	defer func() {
 		err := os.RemoveAll(tempRoot)
 		if err != nil {
@@ -138,16 +162,7 @@ func createTempFileInDirectory(dirName string, applicationName string) (*string,
 	return &tempRoot, nil
 }
 
-// checkBranchExists check if a specific branch in a repository was already created in the origin
-func checkBranchExists(gitR git.Repository, checkOutBranch plumbing.ReferenceName) error {
-	_, err := gitR.ResolveRevision(plumbing.Revision(checkOutBranch))
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func getCheckoutName(gitConfBranch string, applicationName string, gitR git.Repository) (*plumbing.ReferenceName, error) {
+func getCheckoutBranchName(gitConfBranch string, applicationName string, gitR git.Repository) (*plumbing.ReferenceName, error) {
 	var checkOutBranch plumbing.ReferenceName
 	logCtx := log.WithContext().AddField("application", applicationName)
 
@@ -166,48 +181,72 @@ func getCheckoutName(gitConfBranch string, applicationName string, gitR git.Repo
 	return &checkOutBranch, nil
 }
 
-func getGitRepositoryWithBranchUpdated(gitW git.Worktree, gitR git.Repository,
-	creds transport.AuthMethod, gitConfBranch string, appName string) (*git.Worktree, error) {
-	checkOutBranch, err := getCheckoutName(gitConfBranch, appName, gitR)
-	if err != nil {
-		return nil, err
-	}
-
-	err = gitW.Checkout(&git.CheckoutOptions{
-		Branch: *checkOutBranch,
+// checkBranchExists check if a specific branch in a repository was already created in the origin
+func checkBranchExists(gitW git.Worktree, gitR git.Repository, checkOutBranchName plumbing.ReferenceName) (*git.Worktree, error) {
+	err := gitW.Checkout(&git.CheckoutOptions{
+		Branch: checkOutBranchName,
 	})
 	if err != nil {
 		return nil, err
 	}
+	_, err = gitR.ResolveRevision(plumbing.Revision(checkOutBranchName))
+	if err != nil {
+		return nil, err
+	}
+	return &gitW, nil
+}
 
-	err = checkBranchExists(gitR, *checkOutBranch)
+func getRepositoryWorktreeWithBranchUpdated(gitConfBranch string, appName string, gitR git.Repository, creds transport.AuthMethod) (*git.Worktree, error) {
+	gitW, err := gitR.Worktree()
+	if err != nil {
+		return nil, err
+	}
+	checkOutBranchName, err := getCheckoutBranchName(gitConfBranch, appName, gitR)
 	if err != nil {
 		return nil, err
 	}
 
+	gitWUpdated, err := checkBranchExists(*gitW, gitR, *checkOutBranchName)
+	if err != nil {
+		return nil, err
+	}
 	// Pull the latest changes from the origin remote and merge into the current branch
-	log.Infof("git pull origin")
+	log.Infof("Pulling latest changes of branch %s", checkOutBranchName.Short())
 	err = gitW.Pull(&git.PullOptions{
-		RemoteName: "origin",
-		Auth:       creds,
+		Auth:  creds,
+		Force: true,
 	})
+
 	if err != nil {
 		if err.Error() != "already up-to-date" {
 			return nil, err
 		}
 	}
-
 	// Print the latest commit that was just pulled
 	ref, err := gitR.Head()
 	if err != nil {
 		return nil, err
 	}
 	commit, err := gitR.CommitObject(ref.Hash())
+	log.Infof("The latest commit is %s", commit)
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("The latest commit to the branch %s is %s", checkOutBranch, commit)
-	return &gitW, nil
+	return gitWUpdated, nil
+}
+
+func cloneGitRepositoryInBranch(appName string, repoUrl string, creds transport.AuthMethod, tempRoot string, gitConfBranch string) (*git.Worktree, error) {
+	gitR, err := cloneRepository(appName, repoUrl, creds, tempRoot)
+	if err != nil {
+		return nil, err
+	}
+
+	gitW, err := getRepositoryWorktreeWithBranchUpdated(gitConfBranch, appName, *gitR, creds)
+	if err != nil {
+		return nil, err
+	}
+
+	return gitW, nil
 }
 
 // commitChangesGit commits any changes required for updating one or more values
@@ -222,22 +261,12 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 		return nil, fmt.Errorf("could not get creds for repo '%s': %v", cfg.AppName, err)
 	}
 
-	tempRoot, err := createTempFileInDirectory(fmt.Sprintf("git-%s", cfg.AppName), cfg.AppName)
+	tempRoot, err := CreateTempFileInDirectory(fmt.Sprintf("git-%s", cfg.AppName), cfg.AppName, cfg.GitConf.RepoURL)
 	if err != nil {
 		return nil, err
 	}
 
-	gitR, err := cloneRepository(cfg.AppName, cfg.GitConf.RepoURL, creds, *tempRoot)
-	if err != nil {
-		return nil, err
-	}
-
-	gitW, err := gitR.Worktree()
-	if err != nil {
-		return nil, err
-	}
-
-	gitW, err = getGitRepositoryWithBranchUpdated(*gitW, *gitR, creds, cfg.GitConf.Branch, cfg.AppName)
+	gitW, err := cloneGitRepositoryInBranch(cfg.AppName, cfg.GitConf.RepoURL, creds, *tempRoot, cfg.GitConf.Branch)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +286,7 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 		return &apps, nil
 	}
 
-	err = commitAndPushGitChanges(cfg.AppName, *commitMessage, *gitW, cfg.GitCredentials.Username, cfg.GitCredentials.Email, *tempRoot, creds)
+	err = commitAndPushGitChanges(cfg, *commitMessage, *gitW, *tempRoot, creds, apps)
 	if err != nil {
 		return nil, err
 	}

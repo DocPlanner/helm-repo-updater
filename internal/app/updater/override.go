@@ -29,15 +29,14 @@ func writeOverrides(cfg HelmUpdaterConfig, tempRoot string, gitW git.Worktree) (
 		return apps, err
 	}
 
+	fmt.Printf("Target file to add is %s\n", targetFile)
+
 	apps = overrideValues(apps, cfg, targetFile)
 
 	if len(apps) == 0 {
 		return apps, fmt.Errorf("nothing to update, skipping commit")
 	}
-	// _, err = gitW.Add(targetFile)
-	// if err != nil {
-	// 	return nil, err
-	// }
+
 	return apps, nil
 }
 
