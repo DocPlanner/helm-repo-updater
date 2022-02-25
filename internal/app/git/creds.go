@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	sshURLRegex = regexp.MustCompile("^(ssh://)?([^/:]*?)@[^@]+$")
-	URLRegex    = regexp.MustCompile("^(://).*")
+	sshURLRegex   = regexp.MustCompile("^(ssh://)?([^/:]*?)@[^@]+$")
+	httpsURLRegex = regexp.MustCompile("^(https://).*")
 )
 
 // Credentials is a git credential config
@@ -33,7 +33,7 @@ func (c Credentials) NewGitCreds(repoURL string, password string) (transport.Aut
 		return gitSSHCredentials, nil
 	}
 
-	if isURL(repoURL) {
+	if isHTTPSURL(repoURL) {
 		gitCreds, err := c.from(repoURL)
 		if err != nil {
 			return nil, err
@@ -50,9 +50,9 @@ func isSSHURL(url string) bool {
 	return len(matches) > 2
 }
 
-// isURL returns true if supplied URL is  URL
-func isURL(url string) bool {
-	return URLRegex.MatchString(url)
+// isHTTPSURL returns true if supplied URL is a valid HTTPS URL
+func isHTTPSURL(url string) bool {
+	return httpsURLRegex.MatchString(url)
 }
 
 // generateAuthForSSH generate the necessary public keys as auth for git repository using
