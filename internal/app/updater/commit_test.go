@@ -185,6 +185,60 @@ func TestUpdateApplicationDryRun(t *testing.T) {
 	assert.DeepEqual(t, *apps, changeEntries)
 }
 
+func TestUpdateApplicationDryRunInvalidFile(t *testing.T) {
+
+	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gCred := git.Credentials{
+		Email:      validGitCredentialsEmail,
+		Username:   validGitCredentialsUsername,
+		SSHPrivKey: *sshPrivKeyRoute,
+	}
+
+	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
+
+	gConf := git.Conf{
+		RepoURL: validGitRepoURL,
+		Branch:  validGitRepoBranch,
+		File:    "",
+	}
+
+	changeEntry := ChangeEntry{
+		OldValue: "1.0.0",
+		NewValue: "1.1.0",
+		File:     "",
+		Key:      ".image.tag",
+	}
+	changeEntries := []ChangeEntry{
+		changeEntry,
+	}
+	incorrectFile := validHelmAppName + "/values.yamll"
+	cfg := HelmUpdaterConfig{
+		DryRun:         true,
+		LogLevel:       "info",
+		AppName:        validHelmAppName,
+		UpdateApps:     changeEntries,
+		File:           incorrectFile,
+		GitCredentials: &gCred,
+		GitConf:        &gConf,
+	}
+
+	syncState := NewSyncIterationState()
+	_, err = UpdateApplication(cfg, syncState)
+
+	expectedErrorMessage1 := fmt.Sprintf("stat %s", os.TempDir())
+	expectedErrorMessage2 := fmt.Sprintf("%s: no such file or directory", incorrectFile)
+	assert.ErrorContains(t, err, expectedErrorMessage1)
+	assert.ErrorContains(t, err, expectedErrorMessage2)
+}
+
 func TestUpdateApplicationDryRunNoRepoURL(t *testing.T) {
 
 	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
