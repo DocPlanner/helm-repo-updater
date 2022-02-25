@@ -8,6 +8,7 @@ import (
 	"text/template"
 	"time"
 
+	git_internal "github.com/docplanner/helm-repo-updater/internal/app/git"
 	"github.com/docplanner/helm-repo-updater/internal/app/log"
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -133,6 +134,12 @@ func configureCommitMessage(appName string, apps []ChangeEntry, helmUpdaterConfi
 		gitCommitMessage = cm.Name()
 		_ = cm.Close()
 		defer os.Remove(cm.Name())
+	} else {
+		tpl, err := template.New("commitMessage").Parse(git_internal.DefaultGitCommitMessage)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse commit message template: %v", err)
+		}
+		gitCommitMessage = TemplateCommitMessage(tpl, appName, apps)
 	}
 	return &gitCommitMessage, nil
 }
