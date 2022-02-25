@@ -56,57 +56,82 @@ func cloneRepository(appName string, repoUrl string, authCreds transport.AuthMet
 	return r, nil
 }
 
+// commitGitChanges commit the changes in the necessary file/s to the working copy
+// of git repository
+func commitGitChanges(appName string, gitW git.Worktree, commitMessage string, gitUsername string, gitEmail string) (*plumbing.Hash, error) {
+	logCtx := log.WithContext().AddField("application", appName)
+	// We can verify the current status of the worktree using the method Status.
+	logCtx.Debugf("Obtaining current status after changes")
+	status, err := gitW.Status()
+	if err != nil {
+		return nil, err
+	}
+	logCtx.Debugf("Obtained git status status is: %s", status)
+
+	logCtx.Infof("It's going to commit changes with message: %s", commitMessage)
+	commit, err := gitW.Commit(commitMessage, &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  gitUsername,
+			Email: gitEmail,
+			When:  time.Now(),
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &commit, nil
+}
+
+// pushGitChanges push the changes to the remote repository
+func pushGitChanges(appName string, objC object.Commit, gitR *git.Repository, gitAuth transport.AuthMethod) error {
+	logCtx := log.WithContext().AddField("application", appName)
+	logCtx.Infof("It's going to push commit with hash %s and message %s", objC.Hash, objC.Author)
+
+	logCtx.Infof("Pushing changes")
+	err := gitR.Push(&git.PushOptions{
+		Auth: gitAuth,
+	})
+	if err != nil {
+		return err
+	}
+
+	logCtx.Infof("Successfully pushed changes")
+
+	return nil
+}
+
 // commitAndPushGitChanges perfoms a git commit for the given pathSpec to the currently checked
 // out branch and after pushes local changes to the remote branch
 func commitAndPushGitChanges(cfg HelmUpdaterConfig, commitMessage string, gitW git.Worktree, tempRoot string, gitAuth transport.AuthMethod) error {
 	logCtx := log.WithContext().AddField("application", cfg.AppName)
 
 	targetFile := path.Join(cfg.GitConf.File, cfg.File)
-	logCtx.Infof("adding file %s to git for commit changes", targetFile)
+	logCtx.Infof("Adding file %s to git for commit changes", targetFile)
 	_, err := gitW.Add(targetFile)
 	if err != nil {
 		return err
 	}
 
-	// We can verify the current status of the worktree using the method Status.
-	logCtx.Debugf("Obtaining current status after changes")
-	status, err := gitW.Status()
+	commit, err := commitGitChanges(cfg.AppName, gitW, commitMessage, cfg.GitCredentials.Username, cfg.GitCredentials.Email)
 	if err != nil {
 		return err
 	}
-	logCtx.Debugf("Git status status is: %s", status)
 
-	logCtx.Infof("git commit -m %s ", commitMessage)
-	commit, err := gitW.Commit("Updating to value", &git.CommitOptions{
-		Author: &object.Signature{
-			Name:  cfg.GitCredentials.Username,
-			Email: cfg.GitCredentials.Email,
-			When:  time.Now(),
-		},
-	})
+	gitR, err := git.PlainOpen(tempRoot)
 	if err != nil {
 		return err
 	}
-	r, err := git.PlainOpen(tempRoot)
-	if err != nil {
-		return err
-	}
-	// Prints the current HEAD to verify that all worked well.
+
 	logCtx.Debugf("Obtaining current HEAD to verify added changes")
-	obj, err := r.CommitObject(commit)
+	obj, err := gitR.CommitObject(*commit)
 	if err != nil {
 		return err
 	}
-	logCtx.Infof("Committed objects are the following : %s", obj)
+	err = pushGitChanges(cfg.AppName, *obj, gitR, gitAuth)
+	if err != nil {
+		return err
+	}
 
-	logCtx.Infof("Pushing changes")
-	// push using default options
-	err = r.Push(&git.PushOptions{
-		Auth: gitAuth,
-	})
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

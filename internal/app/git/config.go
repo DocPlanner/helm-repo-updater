@@ -3,7 +3,6 @@ package git
 import "text/template"
 
 const DefaultGitCommitMessage = `🚀 automatic update of {{ .AppName }}
-
 {{ range .KeyChanges -}}
 updates key {{ .Key }} value from '{{ .OldValue }}' to '{{ .NewValue }}'
 {{ end -}}
