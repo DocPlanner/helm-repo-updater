@@ -92,14 +92,14 @@ func commitAndPushGitChanges(cfg HelmUpdaterConfig, commitMessage string, gitW g
 		return err
 	}
 	// Prints the current HEAD to verify that all worked well.
-	logCtx.Debugf("git show -s")
+	logCtx.Debugf("Obtaining current HEAD to verify added changes")
 	obj, err := r.CommitObject(commit)
 	if err != nil {
 		return err
 	}
-	logCtx.Infof("obj: %s", obj)
+	logCtx.Infof("Committed objects are the following : %s", obj)
 
-	logCtx.Infof("git push")
+	logCtx.Infof("Pushing changes")
 	// push using default options
 	err = r.Push(&git.PushOptions{
 		Auth: gitAuth,
