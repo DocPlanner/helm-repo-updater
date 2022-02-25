@@ -17,14 +17,15 @@ import (
 
 // UpdateApplication update all values of a single application.
 func UpdateApplication(cfg HelmUpdaterConfig, state *SyncIterationState) (*[]ChangeEntry, error) {
+	logCtx := log.WithContext().AddField("application", cfg.AppName)
 	appsChanges, err := commitChangesLocked(cfg, state)
 	if err != nil {
-		log.Errorf("Could not update application spec: %v", err)
+		logCtx.Errorf("Could not update application spec: %v", err)
 
 		return nil, err
 	}
 
-	log.Infof("Successfully updated the live application spec")
+	logCtx.Infof("Successfully updated the live application spec")
 
 	return appsChanges, nil
 
@@ -56,8 +57,7 @@ func cloneRepository(appName string, repoUrl string, authCreds transport.AuthMet
 
 // commitAndPushGitChanges perfoms a git commit for the given pathSpec to the currently checked
 // out branch and after pushes local changes to the remote branch
-func commitAndPushGitChanges(cfg HelmUpdaterConfig, commitMessage string, gitW git.Worktree, tempRoot string, gitAuth transport.AuthMethod,
-	apps []ChangeEntry) error {
+func commitAndPushGitChanges(cfg HelmUpdaterConfig, commitMessage string, gitW git.Worktree, tempRoot string, gitAuth transport.AuthMethod) error {
 	logCtx := log.WithContext().AddField("application", cfg.AppName)
 
 	targetFile := path.Join(cfg.GitConf.File, cfg.File)
@@ -68,13 +68,12 @@ func commitAndPushGitChanges(cfg HelmUpdaterConfig, commitMessage string, gitW g
 	}
 
 	// We can verify the current status of the worktree using the method Status.
-	logCtx.Infof("git status --porcelain")
+	logCtx.Debugf("Obtaining current status after changes")
 	status, err := gitW.Status()
 	if err != nil {
 		return err
 	}
-
-	logCtx.Infof("status is: %s", status)
+	logCtx.Debugf("Git status status is: %s", status)
 
 	logCtx.Infof("git commit -m %s ", commitMessage)
 	commit, err := gitW.Commit("Updating to value", &git.CommitOptions{
@@ -110,8 +109,7 @@ func commitAndPushGitChanges(cfg HelmUpdaterConfig, commitMessage string, gitW g
 	return nil
 }
 
-// configureCommitOptions creates a git.CommitOptions based in the appName the apps to
-// change and the helm repo updater config message template generated
+// configureCommitMessage configure the git commit message
 func configureCommitMessage(appName string, apps []ChangeEntry, helmUpdaterConfigMessage *template.Template) (*string, error) {
 	var gitCommitMessage string
 
@@ -157,6 +155,7 @@ func CreateTempFileInDirectory(dirName string, applicationName string, repoURL s
 	return &tempRoot, nil
 }
 
+// getCheckoutBranchName obtain the name of the branch to be used
 func getCheckoutBranchName(gitConfBranch string, applicationName string, gitR git.Repository) (*plumbing.ReferenceName, error) {
 	var checkOutBranch plumbing.ReferenceName
 	logCtx := log.WithContext().AddField("application", applicationName)
@@ -191,7 +190,10 @@ func checkBranchExists(gitW git.Worktree, gitR git.Repository, checkOutBranchNam
 	return &gitW, nil
 }
 
+// getRepositoryWorktreeWithBranchUpdated obtain working tree of git repositoy and checks if an specific
+// branch exists already and pull latest changes
 func getRepositoryWorktreeWithBranchUpdated(gitConfBranch string, appName string, gitR git.Repository, creds transport.AuthMethod) (*git.Worktree, error) {
+	logCtx := log.WithContext().AddField("application", appName)
 	gitW, err := gitR.Worktree()
 	if err != nil {
 		return nil, err
@@ -206,7 +208,7 @@ func getRepositoryWorktreeWithBranchUpdated(gitConfBranch string, appName string
 		return nil, err
 	}
 	// Pull the latest changes from the origin remote and merge into the current branch
-	log.Infof("Pulling latest changes of branch %s", checkOutBranchName.Short())
+	logCtx.Infof("Pulling latest changes of branch %s", checkOutBranchName.Short())
 	err = gitW.Pull(&git.PullOptions{
 		Auth:  creds,
 		Force: true,
@@ -217,19 +219,10 @@ func getRepositoryWorktreeWithBranchUpdated(gitConfBranch string, appName string
 			return nil, err
 		}
 	}
-	// Print the latest commit that was just pulled
-	ref, err := gitR.Head()
-	if err != nil {
-		return nil, err
-	}
-	commit, err := gitR.CommitObject(ref.Hash())
-	log.Infof("The latest commit is %s", commit)
-	if err != nil {
-		return nil, err
-	}
 	return gitWUpdated, nil
 }
 
+// cloneGitRepositoryInBranch clone git repository with a specific branch checking if that branch exists already
 func cloneGitRepositoryInBranch(appName string, repoUrl string, creds transport.AuthMethod, tempRoot string, gitConfBranch string) (*git.Worktree, error) {
 	gitR, err := cloneRepository(appName, repoUrl, creds, tempRoot)
 	if err != nil {
@@ -281,7 +274,7 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 		return &apps, nil
 	}
 
-	err = commitAndPushGitChanges(cfg, *commitMessage, *gitW, *tempRoot, creds, apps)
+	err = commitAndPushGitChanges(cfg, *commitMessage, *gitW, *tempRoot, creds)
 	if err != nil {
 		return nil, err
 	}

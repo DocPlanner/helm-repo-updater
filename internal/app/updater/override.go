@@ -14,7 +14,7 @@ var _ changeWriter = writeOverrides
 
 type changeWriter func(cfg HelmUpdaterConfig, tempRoot string, gitW git.Worktree) (apps []ChangeEntry, err error)
 
-//writeOverrides writes the overrides to the git files
+// writeOverrides writes the overrides to the git files
 func writeOverrides(cfg HelmUpdaterConfig, tempRoot string, gitW git.Worktree) (apps []ChangeEntry, err error) {
 	targetFile := path.Join(tempRoot, cfg.GitConf.File, cfg.File)
 
