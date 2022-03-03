@@ -10,7 +10,7 @@
   - [Scope](#scope)
   - [Installation](#installation)
   - [Usage](#usage)
-    - [Examples of usage](#examples-of-usage)
+  - [Examples of usage](#examples-of-usage)
   - [pre-commit](#pre-commit)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -50,7 +50,7 @@ Go to [release page](https://github.com/DocPlanner/helm-repo-updater/releases) a
     Global Flags:
           --config string   config file (default is $HOME/.helm-repo-updater.yaml)
 
-### Examples of usage
+## Examples of usage
 
 - Example run to update the `.image.tag` key to `1.1.0` in the `develop` branch of the `test-repo` repository:
   ```bash
