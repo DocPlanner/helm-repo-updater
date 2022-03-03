@@ -11,6 +11,9 @@
   - [Installation](#installation)
   - [Usage](#usage)
   - [Examples of usage](#examples-of-usage)
+  - [Running the tests](#running-the-tests)
+    - [Tests requirements](#tests-requirements)
+    - [Launch tests](#launch-tests)
   - [pre-commit](#pre-commit)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -23,7 +26,9 @@ This repo aims to manage the development of `helm-repo-updater`, a CLI tool whos
 
 ## Installation
 
-Go to [release page](https://github.com/DocPlanner/helm-repo-updater/releases) and download the binary needed for the architecture of the machine where it is going to run
+- Launch directly the binary, for that option it will be necessary go to [release page](https://github.com/DocPlanner/helm-repo-updater/releases) and download the binary needed for the architecture of the machine where it is going to run
+
+- It is possible to use the Docker image directly, since for each [release](https://github.com/DocPlanner/helm-repo-updater/releases) the associated image will be published in the [GitHub Container Registry of the repository](ghcr.io/docplanner/helm-repo-updater).
 
 ## Usage
 
@@ -103,6 +108,34 @@ Go to [release page](https://github.com/DocPlanner/helm-repo-updater/releases) a
   ERRO[2022-03-03T16:24:17+01:00] Could not update application spec: nothing to update, skipping commit  application=example-app
   ERRO[2022-03-03T16:24:17+01:00] Error trying to update the example-app application: nothing to update, skipping commit  application=example-app
   ```
+
+## Running the tests
+
+Several tests have been created, it has been taken into account that the main functionality requires interacting with a git server, so we have implemented one with the minimum functionality through a [Docker](https://www.docker.com/) container, the files for it are present in the [test-git-server](./test-git-server/) folder.
+
+### Tests requirements
+
+The following software must be installed to run the tests:
+- [Docker](https://docs.docker.com/get-docker/)
+- [docker-compose](https://docs.docker.com/compose/install/)
+
+### Launch tests
+
+- Execute unit tests:
+  ```
+  make test
+  ```
+
+- Execute unit tests with coverage:
+  ```
+  make test-coverage
+  ```
+
+**It is strongly recommended that before launching the tests, the command be executed to "clean" the previous executions**:
+```
+make clean-test-deps
+```
+> The above command will recreate the container created for the git server used in the tests, so that it will start from the initial scenario expected at the beginning of the tests.
 
 ## pre-commit
 
