@@ -54,7 +54,15 @@ Go to [release page](https://github.com/DocPlanner/helm-repo-updater/releases) a
 
 - Example run to update the `.image.tag` key to `1.1.0` in the `develop` branch of the `test-repo` repository::
   ```bash
-  $ helm-repo-updater run --app-name=example-app --git-branch="develop" --git-commit-user="test-user" --git-commit-email="test-user@docplanner.com" --git-file="values.yaml" --helm-key-values=".image.tag=1.1.0" --git-repo-url="ssh://git@localhost:2222/git-server/repos/test-repo.git" --ssh-private-key="test-git-server/private_keys/helm-repo-updater-test"
+  $ helm-repo-updater run \
+    --app-name=example-app \
+    --git-branch="develop" \
+    --git-commit-user="test-user" \
+    --git-commit-email="test-user@docplanner.com" \
+    --git-file="values.yaml" \
+    --helm-key-values=".image.tag=1.1.0" \
+    --git-repo-url="ssh://git@localhost:2222/git-server/repos/test-repo.git" \
+    --ssh-private-key="test-git-server/private_keys/helm-repo-updater-test"
   INFO[2022-03-03T15:25:53+01:00] Cloning git repository ssh://git@localhost:2222/git-server/repos/test-repo.git in temporal folder located in /var/folders/vb/v4wr_9f52ns4mmdkwp4_35cm0000gp/T/git-example-app4219399441  application=example-app
   Enumerating objects: 4, done.
   Counting objects: 100% (4/4), done.
