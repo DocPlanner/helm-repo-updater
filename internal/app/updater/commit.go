@@ -85,7 +85,7 @@ func commitGitChanges(appName string, gitW git.Worktree, commitMessage string, g
 // pushGitChanges push the changes to the remote repository
 func pushGitChanges(appName string, objC object.Commit, gitR *git.Repository, gitAuth transport.AuthMethod) error {
 	logCtx := log.WithContext().AddField("application", appName)
-	logCtx.Infof("It's going to push commit with hash %s and message %s", objC.Hash, objC.Author)
+	logCtx.Infof("It's going to push commit with hash %s and message %s", objC.Hash, objC.Message)
 
 	logCtx.Infof("Pushing changes")
 	err := gitR.Push(&git.PushOptions{
