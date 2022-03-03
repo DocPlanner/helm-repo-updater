@@ -15,7 +15,7 @@ type HelmUpdaterConfig struct {
 	GitConf        *git.Conf
 }
 
-// ChangeEntry represents values that has been changed by Helm Updater
+// ChangeEntry represents values that has been changed by Helm Repo Updater
 type ChangeEntry struct {
 	OldValue string
 	NewValue string
