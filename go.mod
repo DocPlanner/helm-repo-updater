@@ -3,8 +3,6 @@ module github.com/docplanner/helm-repo-updater
 go 1.17
 
 require (
-	github.com/argoproj-labs/argocd-image-updater v0.11.0
-	github.com/google/go-cmp v0.5.6
 	github.com/mikefarah/yq/v4 v4.16.2
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.3.0
@@ -12,31 +10,25 @@ require (
 	github.com/stretchr/testify v1.7.0
 	gopkg.in/op/go-logging.v1 v1.0.0-20160211212156-b2cb9fa56473
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	gotest.tools v2.2.0+incompatible
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 )
 
 require (
-	github.com/argoproj/argo-cd/v2 v2.1.2 // indirect
-	github.com/argoproj/gitops-engine v0.4.1 // indirect
-	github.com/argoproj/pkg v0.9.1 // indirect
-	github.com/bombsimon/logrusr v1.0.0 // indirect
-	github.com/bradleyfalzon/ghinstallation v1.1.1 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/elliotchance/orderedmap v1.4.0 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.0.0 // indirect
-	github.com/go-git/go-git/v5 v5.2.0 // indirect
-	github.com/go-logr/logr v0.4.0 // indirect
+	github.com/go-git/go-git/v5 v5.2.0
 	github.com/goccy/go-yaml v1.9.4 // indirect
-	github.com/google/go-github/v29 v29.0.2 // indirect
-	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.10 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
@@ -48,7 +40,6 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
-	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/sirupsen/logrus v1.8.1

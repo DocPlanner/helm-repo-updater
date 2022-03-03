@@ -13,7 +13,7 @@ ARG USER_GID=$USER_UID
 
 ENV GO111MODULE=auto
 
-ENV GOLANGCI_LINT_V="v1.43.0"
+ENV GOLANGCI_LINT_V="v1.44.2"
 ENV DOCKER_COMPOSE_V="1.29.2"
 
 # Configure apt, install packages and tools

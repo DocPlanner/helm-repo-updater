@@ -5,18 +5,18 @@ import (
 	"os"
 	"path"
 
-	"github.com/argoproj-labs/argocd-image-updater/ext/git"
 	"github.com/docplanner/helm-repo-updater/internal/app/log"
 	"github.com/docplanner/helm-repo-updater/internal/app/yq"
+	git "github.com/go-git/go-git/v5"
 )
 
 var _ changeWriter = writeOverrides
 
-type changeWriter func(cfg HelmUpdaterConfig, gitC git.Client) (apps []ChangeEntry, err error)
+type changeWriter func(cfg HelmUpdaterConfig, tempRoot string, gitW git.Worktree) (apps []ChangeEntry, err error)
 
-//writeOverrides writes the overrides to the git files
-func writeOverrides(cfg HelmUpdaterConfig, gitC git.Client) (apps []ChangeEntry, err error) {
-	targetFile := path.Join(gitC.Root(), cfg.GitConf.File, cfg.File)
+// writeOverrides writes the overrides to the git files
+func writeOverrides(cfg HelmUpdaterConfig, tempRoot string, gitW git.Worktree) (apps []ChangeEntry, err error) {
+	targetFile := path.Join(tempRoot, cfg.GitConf.File, cfg.File)
 
 	apps = make([]ChangeEntry, 0)
 
@@ -35,7 +35,7 @@ func writeOverrides(cfg HelmUpdaterConfig, gitC git.Client) (apps []ChangeEntry,
 		return apps, fmt.Errorf("nothing to update, skipping commit")
 	}
 
-	return apps, gitC.Add(targetFile)
+	return apps, nil
 }
 
 // overrideValues overrides values in the given file

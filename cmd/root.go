@@ -24,12 +24,14 @@ type HelmUpdaterConfig struct {
 	GitConf          *git.Conf
 }
 
+// GitConf contains the configuration for the git repository
 type GitConf struct {
 	RepoURL string
 	Branch  string
 	File    string
 }
 
+// UpdateApp contains the information about the update app
 type UpdateApp struct {
 	Name  string
 	File  string
