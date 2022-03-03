@@ -80,9 +80,8 @@ func overrideValues(apps []ChangeEntry, cfg HelmUpdaterConfig, targetFile string
 			continue
 		}
 		newEntry.NewValue = *newValue
-
 		// check if there is any change
-		if oldValue == newValue {
+		if *oldValue == *newValue {
 			logCtx.Infof("target for key %s is the same, skipping", app.Key)
 
 			continue

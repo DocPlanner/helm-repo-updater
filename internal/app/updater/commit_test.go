@@ -69,7 +69,6 @@ func TestUpdateApplicationDryRunNoChangesEntries(t *testing.T) {
 
 	syncState := NewSyncIterationState()
 	_, err = UpdateApplication(cfg, syncState)
-
 	expectedErrorMessage := "nothing to update, skipping commit"
 
 	assert.Error(t, err, expectedErrorMessage)
@@ -121,13 +120,10 @@ func TestUpdateApplicationDryRunNoChanges(t *testing.T) {
 	}
 
 	syncState := NewSyncIterationState()
-	apps, err := UpdateApplication(cfg, syncState)
+	_, err = UpdateApplication(cfg, syncState)
+	expectedErrorMessage := "nothing to update, skipping commit"
 
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	assert.DeepEqual(t, *apps, changeEntries)
+	assert.Error(t, err, expectedErrorMessage)
 }
 
 func TestUpdateApplicationDryRun(t *testing.T) {
