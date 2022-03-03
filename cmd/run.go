@@ -82,12 +82,14 @@ var runCmd = &cobra.Command{
 			Branch:  gitBranch,
 		}
 
+		logCtx := log.WithContext().AddField("application", appName)
+
 		if tpl, err := template.New("commitMessage").Parse(git.DefaultGitCommitMessage); err != nil {
-			log.Fatalf("could not parse commit message template: %v", err)
+			logCtx.Fatalf("could not parse commit message template: %v", err)
 
 			return
 		} else {
-			log.Debugf("Successfully parsed commit message template")
+			logCtx.Debugf("Successfully parsed commit message template")
 
 			gitConf.Message = tpl
 		}
@@ -103,7 +105,7 @@ var runCmd = &cobra.Command{
 		}
 
 		if err := runImageUpdater(cfg); err != nil {
-			log.Errorf("Error: %v", err)
+			logCtx.Errorf("Error trying to update the %s application: %v", appName, err)
 		}
 	},
 }
