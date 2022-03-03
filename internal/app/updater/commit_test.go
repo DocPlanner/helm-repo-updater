@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	validGitCredentialsEmail      = "test-user@docplanner.com"
 	validGitCredentialsUsername   = "test-user"
+	validGitCredentialsEmail      = validGitCredentialsUsername + "@docplanner.com"
 	SSHRepoPrefix                 = "ssh://git@"
 	SSHRepoLocalHostname          = SSHRepoPrefix + "localhost:2222"
 	SSHRepoCIHostname             = SSHRepoPrefix + "git-server"

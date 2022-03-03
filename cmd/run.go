@@ -140,7 +140,7 @@ func init() {
 	runCmd.Flags().String(GitFile, "", "file eg. values.yaml")
 	runCmd.Flags().String(GitDir, "", "file eg. /production/charts/")
 	runCmd.Flags().String(AppName, "", "app name")
-	runCmd.Flags().String(SshPrivateKey, "", "ssh private key (only using ")
+	runCmd.Flags().String(SshPrivateKey, "", "ssh private key")
 	runCmd.Flags().Bool(DryRun, false, "run in dry-run mode. If set to true, do not perform any changes")
 	runCmd.Flags().String(LogLevel, "info", "set the loglevel to one of trace|debug|info|warn|error")
 	runCmd.Flags().StringToString(HelmKeyValues, nil, "helm key-values sets")
@@ -149,7 +149,6 @@ func init() {
 	_ = runCmd.MarkFlagRequired(GitCommitEmail)
 	_ = runCmd.MarkFlagRequired(GitRepoUrl)
 	_ = runCmd.MarkFlagRequired(GitFile)
-	_ = runCmd.MarkFlagRequired(GitDir)
 	_ = runCmd.MarkFlagRequired(HelmKeyValues)
 	_ = runCmd.MarkFlagRequired(AppName)
 
