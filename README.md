@@ -66,9 +66,9 @@ This repo aims to manage the development of `helm-repo-updater`, a CLI tool whos
       --git-commit-email="test-user@docplanner.com" \
       --git-file="values.yaml" \
       --helm-key-values=".image.tag=1.1.0" \
-      --git-repo-url="ssh://git@localhost:2222/git-server/repos/test-repo.git" \
+      --git-repo-url="git@github.com:DocPlanner/example-repo.git" \
       --ssh-private-key="test-git-server/private_keys/helm-repo-updater-test"
-    INFO[2022-03-03T16:23:10+01:00] Cloning git repository ssh://git@localhost:2222/git-server/repos/test-repo.git in temporal folder located in /var/folders/vb/v4wr_9f52ns4mmdkwp4_35cm0000gp/T/git-example-app956297090  application=example-app
+    INFO[2022-03-03T16:23:10+01:00] Cloning git repository git@github.com:DocPlanner/example-repo.git in temporal folder located in /var/folders/vb/v4wr_9f52ns4mmdkwp4_35cm0000gp/T/git-example-app956297090  application=example-app
     Enumerating objects: 4, done.
     Counting objects: 100% (4/4), done.
     Total 4 (delta 0), reused 0 (delta 0), pack-reused 0
@@ -94,9 +94,9 @@ This repo aims to manage the development of `helm-repo-updater`, a CLI tool whos
       --git-commit-email="test-user@docplanner.com" \
       --git-file="values.yaml" \
       --helm-key-values=".image.tag=1.1.0" \
-      --git-repo-url="ssh://git@localhost:2222/git-server/repos/test-repo.git" \
+      --git-repo-url="git@github.com:DocPlanner/example-repo.git" \
       --ssh-private-key="test-git-server/private_keys/helm-repo-updater-test"
-    INFO[2022-03-03T16:24:17+01:00] Cloning git repository ssh://git@localhost:2222/git-server/repos/test-repo.git in temporal folder located in /var/folders/vb/v4wr_9f52ns4mmdkwp4_35cm0000gp/T/git-example-app1208822616  application=example-app
+    INFO[2022-03-03T16:24:17+01:00] Cloning git repository git@github.com:DocPlanner/example-repo.git in temporal folder located in /var/folders/vb/v4wr_9f52ns4mmdkwp4_35cm0000gp/T/git-example-app1208822616  application=example-app
     Enumerating objects: 8, done.
     Counting objects: 100% (8/8), done.
     Compressing objects: 100% (2/2), done.
@@ -110,69 +110,69 @@ This repo aims to manage the development of `helm-repo-updater`, a CLI tool whos
     ```
 
 - Using a Docker Container:
-  - Example run to update the `.image.tag` key to `1.1.0` in the `develop` branch of the `k8s-argocd-apps` repository for the application `front-controller-app`:
+  - Example run to update the `.image.tag` key to `1.1.0` in the `develop` branch of the `k8s-argocd-apps` repository for the application `example-app`:
     ```bash
-    $ docker run -v ~/.ssh/repositories_keys/xoanmm_github:/tmp/ssh_key ghcr.io/docplanner/helm-repo-updater run \
-        --app-name=front-controller-app \
+    $ docker run -v ~/.ssh/repositories_keys/example-user_github:/tmp/ssh_key ghcr.io/docplanner/helm-repo-updater run \
+        --app-name=example-app \
         --git-branch="develop" \
-        --git-commit-user="xoanmm" \
-        --git-commit-email="xoanmallon.moure@docplanner.com" \
+        --git-commit-user="test-user" \
+        --git-commit-email="test-user@docplanner.com" \
         --git-dir="apps/" \
         --git-file="helm/t0/testing/image.yaml" \
-        --helm-key-values=".dockerTag=1.1.0" \
-        --git-repo-url="git@github.com:DocPlanner/k8s-argocd-apps.git" \
+        --helm-key-values=".image.tag=1.1.0" \
+        --git-repo-url="git@github.com:DocPlanner/example-repo.git" \
         --logLevel=debug \
         --ssh-private-key="/tmp/ssh_key"
-    time="2022-03-04T11:29:07Z" level=debug msg="Successfully parsed commit message template" application=front-controller-app
-    time="2022-03-04T11:29:07Z" level=debug msg="Processing application front-controller-app in directory apps/front-controller-app/helm/t0/testing/image.yaml"
-    time="2022-03-04T11:29:07Z" level=debug msg="Created temporal directory /tmp/git-front-controller-app3237525166 to clone repository git@github.com:DocPlanner/k8s-argocd-apps.git" application=front-controller-app
-    time="2022-03-04T11:29:07Z" level=info msg="Cloning git repository git@github.com:DocPlanner/k8s-argocd-apps.git in temporal folder located in /tmp/git-front-controller-app3237525166" application=front-controller-app
+    time="2022-03-04T11:29:07Z" level=debug msg="Successfully parsed commit message template" application=example-app
+    time="2022-03-04T11:29:07Z" level=debug msg="Processing application example-app in directory apps/example-app/helm/t0/testing/image.yaml"
+    time="2022-03-04T11:29:07Z" level=debug msg="Created temporal directory /tmp/git-example-app3237525166 to clone repository git@github.com:DocPlanner/example-repo.git" application=example-app
+    time="2022-03-04T11:29:07Z" level=info msg="Cloning git repository git@github.com:DocPlanner/example-repo.git in temporal folder located in /tmp/git-example-app3237525166" application=example-app
     Enumerating objects: 192, done.
     Counting objects: 100% (183/183), done.
     Compressing objects: 100% (99/99), done.
     Total 192 (delta 35), reused 153 (delta 25), pack-reused 9
-    time="2022-03-04T11:29:09Z" level=info msg="Pulling latest changes of branch develop" application=front-controller-app
-    time="2022-03-04T11:29:10Z" level=info msg="Actual value for key .dockerTag: 1.0.0" application=front-controller-app
-    time="2022-03-04T11:29:10Z" level=info msg="Setting new value for key .dockerTag: 1.1.0" application=front-controller-app
-    time="2022-03-04T11:29:10Z" level=debug msg="templated commit message successfully with value: 🚀 automatic update of front-controller-app\nupdates key .dockerTag value from '1.0.0' to '1.1.0'\n" application=front-controller-app
-    time="2022-03-04T11:29:10Z" level=info msg="Adding file apps/front-controller-app/helm/t0/testing/image.yaml to git for commit changes" application=front-controller-app
-    time="2022-03-04T11:29:10Z" level=debug msg="Obtaining current status after changes" application=front-controller-app
-    time="2022-03-04T11:29:10Z" level=debug msg="Obtained git status status is: M  apps/front-controller-app/helm/t0/testing/image.yaml\n" application=front-controller-app
-    time="2022-03-04T11:29:10Z" level=info msg="It's going to commit changes with message: 🚀 automatic update of front-controller-app\nupdates key .dockerTag value from '1.0.0' to '1.1.0'\n" application=front-controller-app
-    time="2022-03-04T11:29:10Z" level=debug msg="Obtaining current HEAD to verify added changes" application=front-controller-app
-    time="2022-03-04T11:29:10Z" level=info msg="It's going to push commit with hash cb89e6e2a9a238cd0d1d5cdf29cf408185545ed6 and message 🚀 automatic update of front-controller-app\nupdates key .dockerTag value from '1.0.0' to '1.1.0'\n" application=front-controller-app
-    time="2022-03-04T11:29:10Z" level=info msg="Pushing changes" application=front-controller-app
-    time="2022-03-04T11:29:12Z" level=info msg="Successfully pushed changes" application=front-controller-app
-    time="2022-03-04T11:29:12Z" level=info msg="Successfully updated the live application spec" application=front-controller-app
+    time="2022-03-04T11:29:09Z" level=info msg="Pulling latest changes of branch develop" application=example-app
+    time="2022-03-04T11:29:10Z" level=info msg="Actual value for key .image.tag: 1.0.0" application=example-app
+    time="2022-03-04T11:29:10Z" level=info msg="Setting new value for key .image.tag: 1.1.0" application=example-app
+    time="2022-03-04T11:29:10Z" level=debug msg="templated commit message successfully with value: 🚀 automatic update of example-app\nupdates key .image.tag value from '1.0.0' to '1.1.0'\n" application=example-app
+    time="2022-03-04T11:29:10Z" level=info msg="Adding file apps/example-app/helm/t0/testing/image.yaml to git for commit changes" application=example-app
+    time="2022-03-04T11:29:10Z" level=debug msg="Obtaining current status after changes" application=example-app
+    time="2022-03-04T11:29:10Z" level=debug msg="Obtained git status status is: M  apps/example-app/helm/t0/testing/image.yaml\n" application=example-app
+    time="2022-03-04T11:29:10Z" level=info msg="It's going to commit changes with message: 🚀 automatic update of example-app\nupdates key .image.tag value from '1.0.0' to '1.1.0'\n" application=example-app
+    time="2022-03-04T11:29:10Z" level=debug msg="Obtaining current HEAD to verify added changes" application=example-app
+    time="2022-03-04T11:29:10Z" level=info msg="It's going to push commit with hash cb89e6e2a9a238cd0d1d5cdf29cf408185545ed6 and message 🚀 automatic update of example-app\nupdates key .image.tag value from '1.0.0' to '1.1.0'\n" application=example-app
+    time="2022-03-04T11:29:10Z" level=info msg="Pushing changes" application=example-app
+    time="2022-03-04T11:29:12Z" level=info msg="Successfully pushed changes" application=example-app
+    time="2022-03-04T11:29:12Z" level=info msg="Successfully updated the live application spec" application=example-app
     ```
 
-  - Example run to update the `.image.tag` key to `1.1.0` in the `develop` branch of the `k8s-argocd-apps` repository for the `front-controller-app`, being `1.1.0` the value currently present in the repository for the above key:
+  - Example run to update the `.image.tag` key to `1.1.0` in the `develop` branch of the `k8s-argocd-apps` repository for the `example-app`, being `1.1.0` the value currently present in the repository for the above key:
     ```
-    $ docker run -v ~/.ssh/repositories_keys/xoanmm_github:/tmp/ssh_key ghcr.io/docplanner/helm-repo-updater run \
-        --app-name=front-controller-app \
+    $ docker run -v ~/.ssh/repositories_keys/example-user_github:/tmp/ssh_key ghcr.io/docplanner/helm-repo-updater run \
+        --app-name=example-app \
         --git-branch="develop" \
-        --git-commit-user="xoanmm" \
-        --git-commit-email="xoanmallon.moure@docplanner.com" \
+        --git-commit-user="test-user" \
+        --git-commit-email="test-user@docplanner.com" \
         --git-dir="apps/" \
         --git-file="helm/t0/testing/image.yaml" \
-        --helm-key-values=".dockerTag=1.1.0" \
-        --git-repo-url="git@github.com:DocPlanner/k8s-argocd-apps.git" \
+        --helm-key-values=".image.tag=1.1.0" \
+        --git-repo-url="git@github.com:DocPlanner/example-repo.git" \
         --logLevel=debug \
         --ssh-private-key="/tmp/ssh_key"
-    time="2022-03-04T11:30:48Z" level=debug msg="Successfully parsed commit message template" application=front-controller-app
-    time="2022-03-04T11:30:48Z" level=debug msg="Processing application front-controller-app in directory apps/front-controller-app/helm/t0/testing/image.yaml"
-    time="2022-03-04T11:30:48Z" level=debug msg="Created temporal directory /tmp/git-front-controller-app2386521755 to clone repository git@github.com:DocPlanner/k8s-argocd-apps.git" application=front-controller-app
-    time="2022-03-04T11:30:48Z" level=info msg="Cloning git repository git@github.com:DocPlanner/k8s-argocd-apps.git in temporal folder located in /tmp/git-front-controller-app2386521755" application=front-controller-app
+    time="2022-03-04T11:30:48Z" level=debug msg="Successfully parsed commit message template" application=example-app
+    time="2022-03-04T11:30:48Z" level=debug msg="Processing application example-app in directory apps/example-app/helm/t0/testing/image.yaml"
+    time="2022-03-04T11:30:48Z" level=debug msg="Created temporal directory /tmp/git-example-app2386521755 to clone repository git@github.com:DocPlanner/example-repo.git" application=example-app
+    time="2022-03-04T11:30:48Z" level=info msg="Cloning git repository git@github.com:DocPlanner/example-repo.git in temporal folder located in /tmp/git-example-app2386521755" application=example-app
     Enumerating objects: 200, done.
     Counting objects: 100% (191/191), done.
     Compressing objects: 100% (103/103), done.
     Total 200 (delta 37), reused 159 (delta 25), pack-reused 9
-    time="2022-03-04T11:30:49Z" level=info msg="Pulling latest changes of branch develop" application=front-controller-app
-    time="2022-03-04T11:30:50Z" level=info msg="Actual value for key .dockerTag: 1.1.0" application=front-controller-app
-    time="2022-03-04T11:30:50Z" level=info msg="Setting new value for key .dockerTag: 1.1.0" application=front-controller-app
-    time="2022-03-04T11:30:50Z" level=info msg="target for key .dockerTag is the same, skipping" application=front-controller-app
-    time="2022-03-04T11:30:50Z" level=error msg="Could not update application spec: nothing to update, skipping commit" application=front-controller-app
-    time="2022-03-04T11:30:50Z" level=error msg="Error trying to update the front-controller-app application: nothing to update, skipping commit" application=front-controller-app
+    time="2022-03-04T11:30:49Z" level=info msg="Pulling latest changes of branch develop" application=example-app
+    time="2022-03-04T11:30:50Z" level=info msg="Actual value for key .image.tag: 1.1.0" application=example-app
+    time="2022-03-04T11:30:50Z" level=info msg="Setting new value for key .image.tag: 1.1.0" application=example-app
+    time="2022-03-04T11:30:50Z" level=info msg="target for key .image.tag is the same, skipping" application=example-app
+    time="2022-03-04T11:30:50Z" level=error msg="Could not update application spec: nothing to update, skipping commit" application=example-app
+    time="2022-03-04T11:30:50Z" level=error msg="Error trying to update the example-app application: nothing to update, skipping commit" application=example-app
     ```
 
 ## Running the tests
