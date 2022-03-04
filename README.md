@@ -14,7 +14,6 @@
   - [Running the tests](#running-the-tests)
     - [Tests requirements](#tests-requirements)
     - [Launch tests](#launch-tests)
-  - [pre-commit](#pre-commit)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -136,19 +135,3 @@ The following software must be installed to run the tests:
 make clean-test-deps
 ```
 > The above command will recreate the container created for the git server used in the tests, so that it will start from the initial scenario expected at the beginning of the tests.
-
-## pre-commit
-
-This repo leverage [pre-commit](https://pre-commit.com) to lint, secure, document the codebase. The [pre-commit](https://pre-commit.com) configuration require the following dependencies installed locally:
-- [pre-commit](https://pre-commit.com/#install)
-- [golangci-lint](https://golangci-lint.run/usage/install/#local-installation)
-
-**One first repo download, to install the pre-commit hooks it's necessary execute the following command**:
-```
-pre-commit install
-```
-
-**To run the hooks at will it's necessary execute the following command**:
-```
-pre-commit run -a
-```
