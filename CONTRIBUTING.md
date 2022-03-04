@@ -4,7 +4,7 @@
 
 - [Contributing](#contributing)
   - [Pull Request Process](#pull-request-process)
-    - [pre-commit](#pre-commit)
+  - [pre-commit](#pre-commit)
   - [Code of Conduct](#code-of-conduct)
     - [Our Pledge](#our-pledge)
     - [Our Standards](#our-standards)
@@ -33,7 +33,7 @@ Please note we have a code of conduct, please follow it in all your interactions
 4. You may merge the Pull Request in once you have the sign-off of two other developers, or if you
    do not have permission to do that, you may request the second reviewer to merge it for you.
 
-### pre-commit
+## pre-commit
 
 This repo leverage [pre-commit](https://pre-commit.com) to lint, secure, document the codebase. The [pre-commit](https://pre-commit.com) configuration require the following dependencies installed locally:
 - [pre-commit](https://pre-commit.com/#install)
