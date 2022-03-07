@@ -13,7 +13,7 @@ jobs:
         id: filter
         with:
           filters: |
-            dockerfiles:
+            dockerfile:
               - 'Dockerfile*'
 
       - name: Build images
@@ -58,12 +58,14 @@ jobs:
     name: Validate dev-container
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+
       - uses: dorny/paths-filter@v2
         id: filter
         with:
           filters: |
             dockerfile:
-              - 'Dockerfile*'
+              - '.devcontainer/**'
 
       - name: Build images
         if: steps.filter.outputs.dockerfile == 'true'
