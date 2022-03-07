@@ -1,5 +1,5 @@
 [![GitHub Release](https://img.shields.io/github/release/DocPlanner/helm-repo-updater.svg?logo=github&labelColor=262b30)](https://github.com/DocPlanner/helm-repo-updater/releases)
-[![Go Report Card](https://goreportcard.com/badge/github.com/DocPlanner/helm-repo-updater)](https://goreportcard.com/report/github.com/DocPlanner/helm-repo-updater)
+[![Go Report Card](https://goreportcard.com/badge/github.com/docplanner/helm-repo-updater)](https://goreportcard.com/report/github.com/docplanner/helm-repo-updater)
 [![License](https://img.shields.io/github/license/DocPlanner/helm-repo-updater)](https://github.com/DocPlanner/helm-repo-updater/LICENSE)
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
