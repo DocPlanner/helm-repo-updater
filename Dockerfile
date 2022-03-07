@@ -8,7 +8,7 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN mkdir -p dist \
     && go mod vendor \
-    && CGO_ENABLED=0 GOOS=$(TARGET_OS) GOARCH=$(ARCH) go build -o dist/helm-repo-updater .
+    && CGO_ENABLED=0 GOOS=$(TARGETOS) GOARCH=$(TARGETARCH) go build -o dist/helm-repo-updater .
 
 FROM alpine:3.14
 ENV SSH_KNOWN_HOSTS="~/.ssh/known_hosts"
