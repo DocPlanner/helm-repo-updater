@@ -143,28 +143,16 @@ func configureCommitMessage(appName string, apps []ChangeEntry, helmUpdaterConfi
 
 	if len(apps) > 0 && helmUpdaterConfigMessage != nil {
 		gitCommitMessage = TemplateCommitMessage(helmUpdaterConfigMessage, appName, apps)
+		logCtx.Debugf("templated commit message successfully with value: %s", gitCommitMessage)
 	}
 
-	if gitCommitMessage != "" {
-		cm, err := ioutil.TempFile("", appName)
-		if err != nil {
-			return nil, fmt.Errorf("cold not create temp file: %v", err)
-		}
-		logCtx.Debugf("Writing commit message to %s", cm.Name())
-		err = ioutil.WriteFile(cm.Name(), []byte(gitCommitMessage), 0600)
-		if err != nil {
-			_ = cm.Close()
-			return nil, fmt.Errorf("could not write commit message to %s: %v", cm.Name(), err)
-		}
-		gitCommitMessage = cm.Name()
-		_ = cm.Close()
-		defer os.Remove(cm.Name())
-	} else {
+	if gitCommitMessage == "" {
 		tpl, err := template.New("commitMessage").Parse(git_internal.DefaultGitCommitMessage)
 		if err != nil {
 			return nil, fmt.Errorf("could not parse commit message template: %v", err)
 		}
 		gitCommitMessage = TemplateCommitMessage(tpl, appName, apps)
+		logCtx.Debugf("templated commit message successfully with value: %s", gitCommitMessage)
 	}
 	return &gitCommitMessage, nil
 }
@@ -242,8 +230,8 @@ func getRepositoryWorktreeWithBranchUpdated(gitConfBranch string, appName string
 	// Pull the latest changes from the origin remote and merge into the current branch
 	logCtx.Infof("Pulling latest changes of branch %s", checkOutBranchName.Short())
 	err = gitW.Pull(&git.PullOptions{
-		Auth:  creds,
-		Force: true,
+		Auth:          creds,
+		ReferenceName: *checkOutBranchName,
 	})
 
 	if err != nil {

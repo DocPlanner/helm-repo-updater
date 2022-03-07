@@ -60,6 +60,7 @@ func overrideValues(apps []ChangeEntry, cfg HelmUpdaterConfig, targetFile string
 		newEntry.OldValue = *oldValue
 
 		// replace helm parameters
+		logCtx.Infof("Actual value for key %s: %s", app.Key, newEntry.OldValue)
 		logCtx.Infof("Setting new value for key %s: %s", app.Key, app.NewValue)
 		err = yq.InplaceApply(app.Key, app.NewValue, targetFile)
 		if err != nil {
@@ -79,9 +80,8 @@ func overrideValues(apps []ChangeEntry, cfg HelmUpdaterConfig, targetFile string
 			continue
 		}
 		newEntry.NewValue = *newValue
-
 		// check if there is any change
-		if oldValue == newValue {
+		if *oldValue == *newValue {
 			logCtx.Infof("target for key %s is the same, skipping", app.Key)
 
 			continue

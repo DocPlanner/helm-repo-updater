@@ -8,8 +8,10 @@ RUN export CGO_ENABLED=0 \
     && go build -o dist/helm-repo-updater .
 
 FROM alpine:3.14
-RUN wget -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.14.1/yq_linux_amd64 \
-    && chmod +x /usr/local/bin/yq
+ENV SSH_KNOWN_HOSTS="~/.ssh/known_hosts"
+RUN apk update && apk add openssh
+RUN mkdir -p ~/.ssh/
+RUN ssh-keyscan github.com >> ~/.ssh/known_hosts
 COPY hack/ /usr/local/bin/
 COPY --from=builder /go/src/build/dist/ .
 
