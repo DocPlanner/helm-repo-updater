@@ -11,6 +11,7 @@ import (
 	git_internal "github.com/docplanner/helm-repo-updater/internal/app/git"
 	"github.com/docplanner/helm-repo-updater/internal/app/log"
 	git "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport"
@@ -242,9 +243,30 @@ func getRepositoryWorktreeWithBranchUpdated(gitConfBranch string, appName string
 	return gitWUpdated, nil
 }
 
+// fetchLatestChangesGitRepository fetch the latest changes in a git repository
+func fetchLatestChangesGitRepository(appName string, gitR git.Repository, creds transport.AuthMethod) (*git.Repository, error) {
+	logCtx := log.WithContext().AddField("application", appName)
+	logCtx.Debugf("Fetching latest changes of repository")
+
+	err := gitR.Fetch(&git.FetchOptions{
+		RefSpecs: []config.RefSpec{"refs/*:refs/*", "HEAD:refs/heads/HEAD"},
+		Auth:     creds,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &gitR, nil
+}
+
 // cloneGitRepositoryInBranch clone git repository with a specific branch checking if that branch exists already
 func cloneGitRepositoryInBranch(appName string, repoUrl string, creds transport.AuthMethod, tempRoot string, gitConfBranch string) (*git.Worktree, error) {
 	gitR, err := cloneRepository(appName, repoUrl, creds, tempRoot)
+	if err != nil {
+		return nil, err
+	}
+
+	gitR, err = fetchLatestChangesGitRepository(appName, *gitR, creds)
 	if err != nil {
 		return nil, err
 	}
