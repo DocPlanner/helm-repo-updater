@@ -1,11 +1,15 @@
-FROM golang:1.17-alpine3.14 as builder
+FROM --platform=$BUILDPLATFORM golang:1.17-alpine3.14 as builder
 RUN apk --no-cache add git
 WORKDIR /go/src/build
 COPY . .
+
+# https://www.docker.com/blog/faster-multi-platform-builds-dockerfile-cross-compilation-guide/
+ARG TARGETOS
+ARG TARGETARCH
 RUN export CGO_ENABLED=0 \
     && mkdir -p dist \
     && go mod vendor \
-    && go build -o dist/helm-repo-updater .
+    && CGO_ENABLED=$(CGO) GOOS=$(TARGET_OS) GOARCH=$(ARCH) go build -o dist/helm-repo-updater .
 
 FROM alpine:3.14
 ENV SSH_KNOWN_HOSTS="~/.ssh/known_hosts"

@@ -81,8 +81,7 @@ docker-build: ## Build main image
 
 .PHONY: publish
 publish: docker-build ## Publish main image
-	docker push $(IMAGE)
-	docker push $(IMAGE_LATEST)
+	docker buildx build --push --platform=linux/amd64,linux/arm64 . -t $(IMAGE) -t $(IMAGE_LATEST)
 
 .PHONY: docker-dev-container
 docker-dev-container: ## Build devcontainer image
