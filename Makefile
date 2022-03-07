@@ -77,11 +77,10 @@ gofumpt: $(GOBIN_TOOL)
 
 .PHONY: docker-build
 docker-build: ## Build main image
-	docker build -f Dockerfile -t $(IMAGE) .
+	docker build -f Dockerfile -t $(IMAGE) -t $(IMAGE_LATEST) .
 
 .PHONY: publish
 publish: docker-build ## Publish main image
-	docker tag $(IMAGE) $(IMAGE_LATEST)
 	docker push $(IMAGE)
 	docker push $(IMAGE_LATEST)
 
