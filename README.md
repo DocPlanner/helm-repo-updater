@@ -27,7 +27,7 @@ This repo aims to manage the development of `helm-repo-updater`, a CLI tool whos
 
 - Launch directly the binary, for that option it will be necessary go to [release page](https://github.com/DocPlanner/helm-repo-updater/releases) and download the binary needed for the architecture of the machine where it is going to run
 
-- It is possible to use the Docker image directly, since for each [release](https://github.com/DocPlanner/helm-repo-updater/releases) the associated image will be published in the [GitHub Container Registry of the repository](ghcr.io/docplanner/helm-repo-updater).
+- It is possible to use a Docker container, since for each [release](https://github.com/DocPlanner/helm-repo-updater/releases) the associated image will be published in the [GitHub Container Registry of the repository](ghcr.io/docplanner/helm-repo-updater). The `latest` tag is also available and will point to the latest published version.
 
 ## Usage
 
