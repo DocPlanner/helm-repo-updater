@@ -1,0 +1,70 @@
+name: Docker images validation
+on:
+  - pull_request
+
+jobs:
+  validate-dockerfile:
+    name: Validate Dockerfile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            dockerfiles:
+              - 'Dockerfile*'
+
+      - name: Build images
+        if: steps.filter.outputs.dockerfile == 'true'
+        run: make docker-build
+
+  validate-build-tools:
+    name: Validate build-tools
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            dockerfile:
+              - 'tools/**'
+
+      - name: Build tools
+        if: steps.filter.outputs.dockerfile == 'true'
+        run: make docker-build-tools
+
+  validate-test-server:
+    name: Validate TestServer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            dockerfile:
+              - 'test-git-server/**'
+
+      - name: Build images
+        if: steps.filter.outputs.dockerfile == 'true'
+        run: make docker-git-server-tool
+
+  validate-dev-container:
+    name: Validate dev container
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            dockerfile:
+              - 'Dockerfile*'
+
+      - name: Build images
+        if: steps.filter.outputs.dockerfile == 'true'
+        run: make docker-dev-container
