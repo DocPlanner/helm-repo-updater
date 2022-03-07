@@ -77,7 +77,7 @@ gofumpt: $(GOBIN_TOOL)
 
 .PHONY: docker-build
 docker-build: ## Build main image
-	docker build -f Dockerfile -t $(IMAGE) -t $(IMAGE_LATEST) .
+	DOCKER_BUILDKIT=1 docker build -f Dockerfile -t $(IMAGE) -t $(IMAGE_LATEST) .
 
 .PHONY: publish
 publish: docker-build ## Publish main image
