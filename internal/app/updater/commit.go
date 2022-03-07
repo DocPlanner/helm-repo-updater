@@ -244,12 +244,13 @@ func getRepositoryWorktreeWithBranchUpdated(gitConfBranch string, appName string
 }
 
 // fetchLatestChangesGitRepository fetch the latest changes in a git repository
-func fetchLatestChangesGitRepository(appName string, gitR git.Repository) (*git.Repository, error) {
+func fetchLatestChangesGitRepository(appName string, gitR git.Repository, creds transport.AuthMethod) (*git.Repository, error) {
 	logCtx := log.WithContext().AddField("application", appName)
 	logCtx.Debugf("Fetching latest changes of repository")
 
 	err := gitR.Fetch(&git.FetchOptions{
 		RefSpecs: []config.RefSpec{"refs/*:refs/*", "HEAD:refs/heads/HEAD"},
+		Auth:     creds,
 	})
 	if err != nil {
 		return nil, err
@@ -265,7 +266,7 @@ func cloneGitRepositoryInBranch(appName string, repoUrl string, creds transport.
 		return nil, err
 	}
 
-	gitR, err = fetchLatestChangesGitRepository(appName, *gitR)
+	gitR, err = fetchLatestChangesGitRepository(appName, *gitR, creds)
 	if err != nil {
 		return nil, err
 	}
