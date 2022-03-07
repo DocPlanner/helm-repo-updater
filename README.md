@@ -1,6 +1,7 @@
-[![GitHub Release](https://img.shields.io/github/release/DocPlanner/helm-repo-updater.svg?logo=github&labelColor=262b30)](https://github.com/DocPlanner/helm-repo-updater/releases)
-[![Go Report Card](https://goreportcard.com/badge/github.com/DocPlanner/helm-repo-updater)](https://goreportcard.com/report/github.com/DocPlanner/helm-repo-updater)
-[![License](https://img.shields.io/github/license/DocPlanner/helm-repo-updater)](https://github.com/DocPlanner/helm-repo-updater/LICENSE)
+[![Tests][tests-badge]][tests-link]
+[![GitHub Release][release-badge]][release-link]
+[![Go Report Card][report-badge]][report-link]
+[![License][license-badge]][license-link]
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -202,3 +203,16 @@ The following software must be installed to run the tests:
 make clean-test-deps
 ```
 > The above command will recreate the container created for the git server used in the tests, so that it will start from the initial scenario expected at the beginning of the tests.
+
+<!-- JUST BADGES & LINKS -->
+[tests-badge]: https://img.shields.io/github/workflow/status/DocPlanner/helm-repo-updater/Tests
+[tests-link]: https://github.com/DocPlanner/helm-repo-updater/actions?query=workflow%3ATests
+
+[release-badge]: https://img.shields.io/github/release/DocPlanner/helm-repo-updater.svg?logo=github&labelColor=262b30
+[release-link]: https://github.com/DocPlanner/helm-repo-updater/releases
+
+[report-badge]: https://goreportcard.com/badge/github.com/DocPlanner/helm-repo-updater
+[report-link]: https://goreportcard.com/report/github.com/DocPlanner/helm-repo-updater
+
+[license-badge]: https://img.shields.io/github/license/DocPlanner/helm-repo-updater
+[license-link]: https://github.com/DocPlanner/helm-repo-updater/blob/master/LICENSE
