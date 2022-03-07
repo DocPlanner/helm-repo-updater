@@ -5,14 +5,15 @@ GO_OUTPUT                   = $(CURDIR)/bin/$(APP_NAME)
 APP_NAME                    ?= helm-repo-updater
 GO_TEST_DEFAULT_ARG         = -v ./internal/...
 
-IMAGE_REGISTRY ?= ghcr.io
-IMAGE_REPO     ?= docplanner
-IMAGE_TAG	   ?= latest
+IMAGE_REGISTRY 	?= ghcr.io
+IMAGE_REPO     	?= docplanner
+VERSION			?= develop
 
 
-IMAGE 						?= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater:${IMAGE_TAG}
-IMAGE_BUILD_TOOLS 			?= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater/build-tools:${IMAGE_TAG}
-IMAGE_GIT_REPO_SERVER_TOOL 	?= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater/git-repo-server:${IMAGE_TAG}
+IMAGE 						= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater:${VERSION}
+IMAGE_LATEST				= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater:latest
+IMAGE_BUILD_TOOLS 			= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater/build-tools:${VERSION}
+IMAGE_GIT_REPO_SERVER_TOOL 	= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater/git-repo-server:${VERSION}
 
 .PHONY: build
 build: clean
@@ -80,7 +81,9 @@ docker-build: ## Build main image
 
 .PHONY: publish
 publish: docker-build ## Publish main image
+	docker tag $(IMAGE) $(IMAGE_LATEST)
 	docker push $(IMAGE)
+	docker push $(IMAGE_LATEST)
 
 .PHONY: docker-dev-container
 docker-dev-container: ## Build devcontainer image
