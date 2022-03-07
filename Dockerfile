@@ -3,12 +3,12 @@ RUN apk --no-cache add git
 WORKDIR /go/src/build
 COPY . .
 
+RUN mkdir -p dist
+
 # https://www.docker.com/blog/faster-multi-platform-builds-dockerfile-cross-compilation-guide/
-ARG TARGETOS
-ARG TARGETARCH
-RUN mkdir -p dist \
-    && go mod vendor \
-    && CGO_ENABLED=0 GOOS=$(TARGETOS) GOARCH=$(TARGETARCH) go build -o dist/helm-repo-updater .
+ARG TARGETOS TARGETARCH
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o dist/helm-repo-updater .
+
 
 FROM alpine:3.14
 ENV SSH_KNOWN_HOSTS="~/.ssh/known_hosts"
