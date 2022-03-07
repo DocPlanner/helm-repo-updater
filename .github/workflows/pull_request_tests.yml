@@ -33,17 +33,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/docplanner/helm-repo-updater/build-tools:develop
-      # TODO: Remind to delete this part when we make public the repository
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.CR_PAT }}
     services:
       git-server:
         image: ghcr.io/docplanner/helm-repo-updater/git-repo-server:develop
-        # TODO: Remind to delete this part when we make public the repository
-        credentials:
-          username: ${{ github.actor }}
-          password: ${{ secrets.CR_PAT }}
     steps:
       - uses: actions/checkout@v2
 
