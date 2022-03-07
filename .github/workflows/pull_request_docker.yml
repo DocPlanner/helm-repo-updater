@@ -4,7 +4,7 @@ on:
 
 jobs:
   validate-dockerfile:
-    name: Validate Dockerfile
+    name: Validate dockerfile
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -38,7 +38,7 @@ jobs:
         run: make docker-build-tools
 
   validate-test-server:
-    name: Validate TestServer
+    name: Validate test-server
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -55,7 +55,7 @@ jobs:
         run: make docker-git-server-tool
 
   validate-dev-container:
-    name: Validate dev container
+    name: Validate dev-container
     runs-on: ubuntu-latest
     steps:
       - uses: dorny/paths-filter@v2
