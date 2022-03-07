@@ -5,11 +5,15 @@ GO_OUTPUT                   = $(CURDIR)/bin/$(APP_NAME)
 APP_NAME                    ?= helm-repo-updater
 GO_TEST_DEFAULT_ARG         = -v ./internal/...
 
-IMAGE_REGISTRY ?= ghcr.io
-IMAGE_REPO     ?= docplanner
+IMAGE_REGISTRY	?= ghcr.io
+IMAGE_REPO		?= docplanner
+VERSION			?= develop
 
-IMAGE_BUILD_TOOLS = $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater/build-tools:develop
-IMAGE_GIT_REPO_SERVER_TOOL = $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater/git-repo-server:develop
+
+IMAGE						= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater:${VERSION}
+IMAGE_LATEST				= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater:latest
+IMAGE_BUILD_TOOLS 			= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater/build-tools:${VERSION}
+IMAGE_GIT_REPO_SERVER_TOOL 	= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater/git-repo-server:${VERSION}
 
 .PHONY: build
 build: clean
@@ -71,14 +75,33 @@ golangci-lint: $(GOBIN_TOOL)
 gofumpt: $(GOBIN_TOOL)
 	GOOS=linux $(GOBIN_TOOL) -run mvdan.cc/gofumpt -l -w .
 
-.PHONY: publish-build-tools
-publish-build-tools: ## Publish build-tools image
+.PHONY: docker-build
+docker-build: ## Build main image
+	docker build -f Dockerfile -t $(IMAGE) -t $(IMAGE_LATEST) .
+
+.PHONY: publish
+publish: docker-build ## Publish main image
+	docker push $(IMAGE)
+	docker push $(IMAGE_LATEST)
+
+.PHONY: docker-dev-container
+docker-dev-container: ## Build devcontainer image
+	docker build -f .devcontainer/Dockerfile .
+
+.PHONY: docker-build-tools
+docker-build-tools: ## Build build-tools image
 	docker build -f tools/build-tools.Dockerfile -t $(IMAGE_BUILD_TOOLS) .
+
+.PHONY: publish-build-tools
+publish-build-tools: docker-build-tools ## Publish build-tools image
 	docker push $(IMAGE_BUILD_TOOLS)
 
-.PHONY: publish-git-server-tool
-publish-git-server-tool: ## Publish git-server-tool image
+.PHONY: docker-git-server-tool
+docker-git-server-tool: ## Build git-server-tool image
 	docker build -f test-git-server/Dockerfile -t $(IMAGE_GIT_REPO_SERVER_TOOL) .
+
+.PHONY: publish-git-server-tool
+publish-git-server-tool: docker-git-server-tool ## Publish git-server-tool image
 	docker push $(IMAGE_GIT_REPO_SERVER_TOOL)
 
 $(GOBIN_TOOL):
