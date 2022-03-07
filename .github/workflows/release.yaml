@@ -37,6 +37,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get the version to publish
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
+
       - name: Log in to the Container registry
         uses: docker/login-action@v1
         with:
@@ -50,4 +54,4 @@ jobs:
       - name: Build and push Docker image
         run: make publish
         env:
-          VERSION: ${GITHUB_REF#refs/tags/v}
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
