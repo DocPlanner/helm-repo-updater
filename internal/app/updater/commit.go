@@ -43,12 +43,12 @@ func commitChangesLocked(cfg HelmUpdaterConfig, state *SyncIterationState) (*[]C
 }
 
 // cloneRepository clones the git repository in a temporal directory.
-func cloneRepository(appName string, repoUrl string, authCreds transport.AuthMethod, tempRoot string) (*git.Repository, error) {
+func cloneRepository(appName string, repoURL string, authCreds transport.AuthMethod, tempRoot string) (*git.Repository, error) {
 	logCtx := log.WithContext().AddField("application", appName)
-	logCtx.Infof("Cloning git repository %s in temporal folder located in %s", repoUrl, tempRoot)
+	logCtx.Infof("Cloning git repository %s in temporal folder located in %s", repoURL, tempRoot)
 	r, err := git.PlainClone(tempRoot, false, &git.CloneOptions{
 		Auth:     authCreds,
-		URL:      repoUrl,
+		URL:      repoURL,
 		Progress: os.Stdout,
 	})
 	if err != nil {
@@ -160,7 +160,7 @@ func configureCommitMessage(appName string, apps []ChangeEntry, helmUpdaterConfi
 
 // createTempFileInDirectory creates a temporal directory where a copy of
 // the git repository is going to be stored.
-func CreateTempFileInDirectory(dirName string, applicationName string, repoURL string) (*string, error) {
+func createTempFileInDirectory(dirName string, applicationName string, repoURL string) (*string, error) {
 	logCtx := log.WithContext().AddField("application", applicationName)
 	tempRoot, err := ioutil.TempDir(os.TempDir(), dirName)
 	if err != nil {
@@ -260,8 +260,8 @@ func fetchLatestChangesGitRepository(appName string, gitR git.Repository, creds 
 }
 
 // cloneGitRepositoryInBranch clone git repository with a specific branch checking if that branch exists already
-func cloneGitRepositoryInBranch(appName string, repoUrl string, creds transport.AuthMethod, tempRoot string, gitConfBranch string) (*git.Worktree, error) {
-	gitR, err := cloneRepository(appName, repoUrl, creds, tempRoot)
+func cloneGitRepositoryInBranch(appName string, repoURL string, creds transport.AuthMethod, tempRoot string, gitConfBranch string) (*git.Worktree, error) {
+	gitR, err := cloneRepository(appName, repoURL, creds, tempRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +291,7 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 		return nil, fmt.Errorf("could not get creds for repo '%s': %v", cfg.AppName, err)
 	}
 
-	tempRoot, err := CreateTempFileInDirectory(fmt.Sprintf("git-%s", cfg.AppName), cfg.AppName, cfg.GitConf.RepoURL)
+	tempRoot, err := createTempFileInDirectory(fmt.Sprintf("git-%s", cfg.AppName), cfg.AppName, cfg.GitConf.RepoURL)
 	if err != nil {
 		return nil, err
 	}

@@ -18,17 +18,17 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
-// LogContext contains a structured context for logging
-type LogContext struct {
+// Context contains a structured context for logging
+type Context struct {
 	fields    logger.Fields
 	normalOut io.Writer
 	errorOut  io.Writer
 	mutex     sync.RWMutex
 }
 
-// NewContext returns a LogContext with default settings
-func NewContext() *LogContext {
-	var logctx LogContext
+// NewContext returns a Context with default settings
+func NewContext() *Context {
+	var logctx Context
 	logctx.fields = make(logger.Fields)
 	logctx.normalOut = os.Stdout
 	logctx.errorOut = os.Stderr
@@ -55,12 +55,12 @@ func SetLogLevel(logLevel string) error {
 }
 
 // WithContext is an alias for NewContext
-func WithContext() *LogContext {
+func WithContext() *Context {
 	return NewContext()
 }
 
 // AddField adds a structured field to logctx
-func (logctx *LogContext) AddField(key string, value interface{}) *LogContext {
+func (logctx *Context) AddField(key string, value interface{}) *Context {
 	logctx.mutex.Lock()
 	logctx.fields[key] = value
 	logctx.mutex.Unlock()
@@ -68,7 +68,7 @@ func (logctx *LogContext) AddField(key string, value interface{}) *LogContext {
 }
 
 // Tracef logs a debug message for logctx to stdout
-func (logctx *LogContext) Tracef(format string, args ...interface{}) {
+func (logctx *Context) Tracef(format string, args ...interface{}) {
 	logger.SetOutput(logctx.normalOut)
 	if logctx.fields != nil && len(logctx.fields) > 0 {
 		logger.WithFields(logctx.fields).Tracef(format, args...)
@@ -78,7 +78,7 @@ func (logctx *LogContext) Tracef(format string, args ...interface{}) {
 }
 
 // Debugf logs a debug message for logctx to stdout
-func (logctx *LogContext) Debugf(format string, args ...interface{}) {
+func (logctx *Context) Debugf(format string, args ...interface{}) {
 	logger.SetOutput(logctx.normalOut)
 	if logctx.fields != nil && len(logctx.fields) > 0 {
 		logger.WithFields(logctx.fields).Debugf(format, args...)
@@ -88,7 +88,7 @@ func (logctx *LogContext) Debugf(format string, args ...interface{}) {
 }
 
 // Infof logs an informational message for logctx to stdout
-func (logctx *LogContext) Infof(format string, args ...interface{}) {
+func (logctx *Context) Infof(format string, args ...interface{}) {
 	logger.SetOutput(logctx.normalOut)
 	if logctx.fields != nil && len(logctx.fields) > 0 {
 		logger.WithFields(logctx.fields).Infof(format, args...)
@@ -98,7 +98,7 @@ func (logctx *LogContext) Infof(format string, args ...interface{}) {
 }
 
 // Warnf logs a warning message for logctx to stdout
-func (logctx *LogContext) Warnf(format string, args ...interface{}) {
+func (logctx *Context) Warnf(format string, args ...interface{}) {
 	logger.SetOutput(logctx.normalOut)
 	if logctx.fields != nil && len(logctx.fields) > 0 {
 		logger.WithFields(logctx.fields).Warnf(format, args...)
@@ -108,7 +108,7 @@ func (logctx *LogContext) Warnf(format string, args ...interface{}) {
 }
 
 // Errorf logs a non-fatal error message for logctx to stdout
-func (logctx *LogContext) Errorf(format string, args ...interface{}) {
+func (logctx *Context) Errorf(format string, args ...interface{}) {
 	logger.SetOutput(logctx.errorOut)
 	if logctx.fields != nil && len(logctx.fields) > 0 {
 		logger.WithFields(logctx.fields).Errorf(format, args...)
@@ -118,7 +118,7 @@ func (logctx *LogContext) Errorf(format string, args ...interface{}) {
 }
 
 // Fatalf logs a fatal error message for logctx to stdout
-func (logctx *LogContext) Fatalf(format string, args ...interface{}) {
+func (logctx *Context) Fatalf(format string, args ...interface{}) {
 	logger.SetOutput(logctx.errorOut)
 	if logctx.fields != nil && len(logctx.fields) > 0 {
 		logger.WithFields(logctx.fields).Fatalf(format, args...)
@@ -127,19 +127,19 @@ func (logctx *LogContext) Fatalf(format string, args ...interface{}) {
 	}
 }
 
-// Debugf logs a warning message without context to stdout
+// Tracef logs a trace message without context to stdout
 func Tracef(format string, args ...interface{}) {
 	logCtx := NewContext()
 	logCtx.Tracef(format, args...)
 }
 
-// Debugf logs a warning message without context to stdout
+// Debugf logs a debug message without context to stdout
 func Debugf(format string, args ...interface{}) {
 	logCtx := NewContext()
 	logCtx.Debugf(format, args...)
 }
 
-// Infof logs a warning message without context to stdout
+// Infof logs an informational message without context to stdout
 func Infof(format string, args ...interface{}) {
 	logCtx := NewContext()
 	logCtx.Infof(format, args...)

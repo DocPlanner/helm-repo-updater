@@ -1,10 +1,12 @@
 package decoder
 
 import (
-	yaml "gopkg.in/yaml.v3"
 	"io"
+
+	yaml "gopkg.in/yaml.v3"
 )
 
+// Decoder container the methods to Init a Decode a Decoder
 type Decoder interface {
 	Init(reader io.Reader)
 	Decode(node *yaml.Node) error
@@ -14,6 +16,7 @@ type yamlDecoder struct {
 	decoder yaml.Decoder
 }
 
+// NewYamlDecoder creates a new Decoder
 func NewYamlDecoder() Decoder {
 	return &yamlDecoder{}
 }
