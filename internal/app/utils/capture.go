@@ -5,6 +5,7 @@ import (
 	"os"
 )
 
+// CaptureStdout get the stdout output
 func CaptureStdout(callback func()) (string, error) {
 	oldStdout := os.Stdout
 	oldStderr := os.Stderr
@@ -30,6 +31,7 @@ func CaptureStdout(callback func()) (string, error) {
 	return string(data), err
 }
 
+// CaptureStderr get the error output
 func CaptureStderr(callback func()) (string, error) {
 	oldStdout := os.Stdout
 	oldStderr := os.Stderr

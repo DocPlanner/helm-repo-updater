@@ -13,18 +13,29 @@ import (
 )
 
 const (
-	GitCommitUser  = "git-commit-user"
+	// GitCommitUser is the user login used for commit changes
+	GitCommitUser = "git-commit-user"
+	// GitCommitEmail is the email used for commit changes
 	GitCommitEmail = "git-commit-email"
-	GitPassword    = "git-password"
-	GitBranch      = "git-branch"
-	GitRepoUrl     = "git-repo-url"
-	GitFile        = "git-file"
-	GitDir         = "git-dir"
-
-	AppName       = "app-name"
-	SshPrivateKey = "ssh-private-key"
-	DryRun        = "dry-run"
-	LogLevel      = "logLevel"
+	// GitPassword is the git password used for auth
+	GitPassword = "git-password"
+	// GitBranch is the branch of the git repository
+	GitBranch = "git-branch"
+	// GitRepoURL is the git repository url
+	GitRepoURL = "git-repo-url"
+	// GitFile is the file that is going to be changed
+	GitFile = "git-file"
+	// GitDir is the directory where the file to be changed is located
+	GitDir = "git-dir"
+	// AppName is the name of the helm application
+	AppName = "app-name"
+	// SSHPrivateKey is the location of the SSH private key used for auth
+	SSHPrivateKey = "ssh-private-key"
+	// DryRun is going to indicate if the changes are going to be committed or not
+	DryRun = "dry-run"
+	// LogLevel will indicate the log level
+	LogLevel = "logLevel"
+	// HelmKeyValues will be used for indicate the key and values to be changed in helm
 	HelmKeyValues = "helm-key-values"
 )
 
@@ -39,10 +50,10 @@ var runCmd = &cobra.Command{
 		gitEmail, _ := cmd.Flags().GetString(GitCommitEmail)
 		gitPass, _ := cmd.Flags().GetString(GitPassword)
 		gitBranch, _ := cmd.Flags().GetString(GitBranch)
-		gitRepoURL, _ := cmd.Flags().GetString(GitRepoUrl)
+		gitRepoURL, _ := cmd.Flags().GetString(GitRepoURL)
 		gitFile, _ := cmd.Flags().GetString(GitFile)
 		gitDir, _ := cmd.Flags().GetString(GitDir)
-		sshKey, _ := cmd.Flags().GetString(SshPrivateKey)
+		sshKey, _ := cmd.Flags().GetString(SSHPrivateKey)
 		appName, _ := cmd.Flags().GetString(AppName)
 		logLevel, _ := cmd.Flags().GetString(LogLevel)
 		dryRun, _ := cmd.Flags().GetBool(DryRun)
@@ -138,18 +149,18 @@ func init() {
 	runCmd.Flags().String(GitCommitEmail, "", "E-Mail address to use for Git commits")
 	runCmd.Flags().String(GitPassword, "", "Password for github user")
 	runCmd.Flags().String(GitBranch, "develop", "branch")
-	runCmd.Flags().String(GitRepoUrl, "", "git repo url")
+	runCmd.Flags().String(GitRepoURL, "", "git repo url")
 	runCmd.Flags().String(GitFile, "", "file eg. values.yaml")
 	runCmd.Flags().String(GitDir, "", "file eg. /production/charts/")
 	runCmd.Flags().String(AppName, "", "app name")
-	runCmd.Flags().String(SshPrivateKey, "", "ssh private key")
+	runCmd.Flags().String(SSHPrivateKey, "", "ssh private key")
 	runCmd.Flags().Bool(DryRun, false, "run in dry-run mode. If set to true, do not perform any changes")
 	runCmd.Flags().String(LogLevel, "info", "set the loglevel to one of trace|debug|info|warn|error")
 	runCmd.Flags().StringToString(HelmKeyValues, nil, "helm key-values sets")
 
 	_ = runCmd.MarkFlagRequired(GitCommitUser)
 	_ = runCmd.MarkFlagRequired(GitCommitEmail)
-	_ = runCmd.MarkFlagRequired(GitRepoUrl)
+	_ = runCmd.MarkFlagRequired(GitRepoURL)
 	_ = runCmd.MarkFlagRequired(GitFile)
 	_ = runCmd.MarkFlagRequired(HelmKeyValues)
 	_ = runCmd.MarkFlagRequired(AppName)

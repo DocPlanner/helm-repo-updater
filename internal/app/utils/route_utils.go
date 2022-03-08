@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// UpdateApplication get the relative path folder based in number of relative paths indicated
+// GetRouteRelativePath get the relative path folder based in number of relative paths indicated
 func GetRouteRelativePath(numRelativePath int, relativePath string) (*string, error) {
 	wd, err := os.Getwd()
 	if err != nil {

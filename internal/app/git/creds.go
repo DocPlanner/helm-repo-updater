@@ -57,7 +57,7 @@ func isHTTPSURL(url string) bool {
 
 // generateAuthForSSH generate the necessary public keys as auth for git repository using
 // the provided privateKeyFile containing a valid SSH private key
-func generateAuthForSSH(repoUrl string, userName string, privateKeyFile string, password string) (ssh.AuthMethod, error) {
+func generateAuthForSSH(repoURL string, userName string, privateKeyFile string, password string) (ssh.AuthMethod, error) {
 	publicKeys, err := ssh.NewPublicKeysFromFile("git", privateKeyFile, password)
 	if err != nil {
 		log.Warnf("generate publickeys failed: %s\n", err.Error())
@@ -67,16 +67,16 @@ func generateAuthForSSH(repoUrl string, userName string, privateKeyFile string, 
 }
 
 // fromSSH generate a valid credentials using ssh key
-func (c Credentials) fromSSH(repoUrl string, password string) (ssh.AuthMethod, error) {
-	if c.allowsSshAuth() {
-		sshPublicKeys, err := generateAuthForSSH(repoUrl, c.Username, c.SSHPrivKey, password)
+func (c Credentials) fromSSH(repoURL string, password string) (ssh.AuthMethod, error) {
+	if c.allowsSSHAuth() {
+		sshPublicKeys, err := generateAuthForSSH(repoURL, c.Username, c.SSHPrivKey, password)
 		if err != nil {
 			return nil, err
 		}
 		return sshPublicKeys, nil
 	}
 
-	return nil, sshPrivateKeyNotProvided(repoUrl)
+	return nil, sshPrivateKeyNotProvided(repoURL)
 }
 
 // generatAuthFor generate a valid credentials for go-git library using
@@ -100,7 +100,7 @@ func (c Credentials) from(repoURL string) (*http.BasicAuth, error) {
 
 // allowSshAuth check if necessary attributes for generate an SSH
 // credentials are provided
-func (c Credentials) allowsSshAuth() bool {
+func (c Credentials) allowsSSHAuth() bool {
 	return c.SSHPrivKey != ""
 }
 
@@ -112,18 +112,18 @@ func (c Credentials) allowsAuth() bool {
 
 // sshPrivateKeyNotProvided return an error used when sshPrivKey
 // is not provided for generate and SSH credentials
-func sshPrivateKeyNotProvided(repoUrl string) error {
-	return fmt.Errorf("sshPrivKey not provided for authenticatication to repository %s", repoUrl)
+func sshPrivateKeyNotProvided(repoURL string) error {
+	return fmt.Errorf("sshPrivKey not provided for authenticatication to repository %s", repoURL)
 }
 
 // UserAndPasswordNotProvided return an error used when
 // username or password are not provided for generate and  credentials
-func UserAndPasswordNotProvided(repoUrl string) error {
-	return fmt.Errorf("no value provided for username and password for authentication to repository %s", repoUrl)
+func UserAndPasswordNotProvided(repoURL string) error {
+	return fmt.Errorf("no value provided for username and password for authentication to repository %s", repoURL)
 }
 
 // unknownRepositoryType return an error used when
 // the repository provided is not  or SSH type
-func unknownRepositoryType(repoUrl string) error {
-	return fmt.Errorf("unknown repository type for git repository URL %s", repoUrl)
+func unknownRepositoryType(repoURL string) error {
+	return fmt.Errorf("unknown repository type for git repository URL %s", repoURL)
 }
