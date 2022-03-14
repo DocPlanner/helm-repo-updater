@@ -285,7 +285,6 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 	var apps []ChangeEntry
 
 	logCtx := log.WithContext().AddField("application", cfg.AppName)
-
 	creds, err := cfg.GitCredentials.NewGitCreds(cfg.GitConf.RepoURL, cfg.GitCredentials.Password)
 	if err != nil {
 		return nil, fmt.Errorf("could not get creds for repo '%s': %v", cfg.AppName, err)

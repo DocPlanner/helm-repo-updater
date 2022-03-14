@@ -31,6 +31,8 @@ const (
 	AppName = "app-name"
 	// SSHPrivateKey is the location of the SSH private key used for auth
 	SSHPrivateKey = "ssh-private-key"
+	// SSHPrivateKeyInline indicates if the SSHPrivateKey is going to be created based in a string provided
+	SSHPrivateKeyInline = "ssh-private-key-inline"
 	// DryRun is going to indicate if the changes are going to be committed or not
 	DryRun = "dry-run"
 	// LogLevel will indicate the log level
@@ -74,6 +76,8 @@ var runCmd = &cobra.Command{
 		}
 
 		var updateApps []updater.ChangeEntry
+		var tpl *template.Template
+		var err error
 		for k, v := range helmKVs {
 			updateApps = append(updateApps, updater.ChangeEntry{
 				Key:      k,
@@ -95,15 +99,13 @@ var runCmd = &cobra.Command{
 
 		logCtx := log.WithContext().AddField("application", appName)
 
-		if tpl, err := template.New("commitMessage").Parse(git.DefaultGitCommitMessage); err != nil {
+		if tpl, err = template.New("commitMessage").Parse(git.DefaultGitCommitMessage); err != nil {
 			logCtx.Fatalf("could not parse commit message template: %v", err)
 
 			return
-		} else {
-			logCtx.Debugf("Successfully parsed commit message template")
-
-			gitConf.Message = tpl
 		}
+		logCtx.Debugf("Successfully parsed commit message template")
+		gitConf.Message = tpl
 
 		cfg = updater.HelmUpdaterConfig{
 			DryRun:         dryRun,
@@ -115,7 +117,7 @@ var runCmd = &cobra.Command{
 			GitConf:        gitConf,
 		}
 
-		if err := runImageUpdater(cfg); err != nil {
+		if err = runImageUpdater(cfg); err != nil {
 			logCtx.Errorf("Error trying to update the %s application: %v", appName, err)
 		}
 	},
@@ -154,6 +156,7 @@ func init() {
 	runCmd.Flags().String(GitDir, "", "file eg. /production/charts/")
 	runCmd.Flags().String(AppName, "", "app name")
 	runCmd.Flags().String(SSHPrivateKey, "", "ssh private key")
+	runCmd.Flags().Bool(SSHPrivateKeyInline, false, "ssh private key inline creation")
 	runCmd.Flags().Bool(DryRun, false, "run in dry-run mode. If set to true, do not perform any changes")
 	runCmd.Flags().String(LogLevel, "info", "set the loglevel to one of trace|debug|info|warn|error")
 	runCmd.Flags().StringToString(HelmKeyValues, nil, "helm key-values sets")

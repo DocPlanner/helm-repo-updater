@@ -2,9 +2,11 @@ package git
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 
 	"github.com/docplanner/helm-repo-updater/internal/app/log"
+	app_utils "github.com/docplanner/helm-repo-updater/internal/app/utils"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
@@ -17,10 +19,11 @@ var (
 
 // Credentials is a git credential config
 type Credentials struct {
-	Username   string
-	Password   string
-	Email      string
-	SSHPrivKey string
+	Username             string
+	Password             string
+	Email                string
+	SSHPrivKey           string
+	SSHPrivKeyFileInline bool
 }
 
 // NewGitCreds returns credentials for use with go-git library
@@ -57,8 +60,20 @@ func isHTTPSURL(url string) bool {
 
 // generateAuthForSSH generate the necessary public keys as auth for git repository using
 // the provided privateKeyFile containing a valid SSH private key
-func generateAuthForSSH(repoURL string, userName string, privateKeyFile string, password string) (ssh.AuthMethod, error) {
-	publicKeys, err := ssh.NewPublicKeysFromFile("git", privateKeyFile, password)
+func generateAuthForSSH(repoURL string, userName string, privateKeyFile string, SSHPrivKeyFileInline bool, password string) (ssh.AuthMethod, error) {
+	sshPrivKeyFileName := privateKeyFile
+	if SSHPrivKeyFileInline {
+		sshPrivKeyFile, err := app_utils.CreateAndWriteContentInTempFile("sshPrivKey", privateKeyFile)
+		if err != nil {
+			return nil, err
+		}
+		sshPrivKeyFileName = sshPrivKeyFile.Name()
+		// close and remove the temporary file at the end of the program
+		defer sshPrivKeyFile.Close()
+		defer os.Remove(sshPrivKeyFileName)
+		log.Infof("Generated file in %s location with content of SSH private key provided as input", sshPrivKeyFileName)
+	}
+	publicKeys, err := ssh.NewPublicKeysFromFile("git", sshPrivKeyFileName, password)
 	if err != nil {
 		log.Warnf("generate publickeys failed: %s\n", err.Error())
 		return nil, err
@@ -69,7 +84,7 @@ func generateAuthForSSH(repoURL string, userName string, privateKeyFile string, 
 // fromSSH generate a valid credentials using ssh key
 func (c Credentials) fromSSH(repoURL string, password string) (ssh.AuthMethod, error) {
 	if c.allowsSSHAuth() {
-		sshPublicKeys, err := generateAuthForSSH(repoURL, c.Username, c.SSHPrivKey, password)
+		sshPublicKeys, err := generateAuthForSSH(repoURL, c.Username, c.SSHPrivKey, c.SSHPrivKeyFileInline, password)
 		if err != nil {
 			return nil, err
 		}
