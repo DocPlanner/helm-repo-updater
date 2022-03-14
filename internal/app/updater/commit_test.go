@@ -2,6 +2,7 @@ package updater
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"testing"
@@ -141,6 +142,63 @@ func TestUpdateApplicationDryRun(t *testing.T) {
 		Email:      validGitCredentialsEmail,
 		Username:   validGitCredentialsUsername,
 		SSHPrivKey: *sshPrivKeyRoute,
+	}
+
+	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute
+
+	gConf := git.Conf{
+		RepoURL: validGitRepoURL,
+		Branch:  validGitRepoBranch,
+		File:    "",
+	}
+
+	changeEntry := ChangeEntry{
+		OldValue: "1.0.0",
+		NewValue: "1.1.0",
+		File:     "",
+		Key:      ".image.tag",
+	}
+	changeEntries := []ChangeEntry{
+		changeEntry,
+	}
+
+	cfg := HelmUpdaterConfig{
+		DryRun:         true,
+		LogLevel:       "info",
+		AppName:        validHelmAppName,
+		UpdateApps:     changeEntries,
+		File:           validHelmAppFileToChange,
+		GitCredentials: &gCred,
+		GitConf:        &gConf,
+	}
+
+	syncState := NewSyncIterationState()
+	apps, err := UpdateApplication(cfg, syncState)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.DeepEqual(t, *apps, changeEntries)
+}
+
+func TestUpdateApplicationDryRunSSHPrivKeyString(t *testing.T) {
+	sshPrivKeyRoute, err := app_utils.GetRouteRelativePath(2, validSSHPrivKeyRelativeRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+	content, err := ioutil.ReadFile(*sshPrivKeyRoute)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Convert []byte to string
+	validSSHPrivKeyString := string(content)
+	gCred := git.Credentials{
+		Email:                validGitCredentialsEmail,
+		Username:             validGitCredentialsUsername,
+		SSHPrivKey:           validSSHPrivKeyString,
+		SSHPrivKeyFileInline: true,
 	}
 
 	validGitRepoURL := getSSHRepoHostnameAndPort() + validGitRepoRoute

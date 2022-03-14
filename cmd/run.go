@@ -31,6 +31,8 @@ const (
 	AppName = "app-name"
 	// SSHPrivateKey is the location of the SSH private key used for auth
 	SSHPrivateKey = "ssh-private-key"
+	// UseSSHPrivateKeyAsInline indicates if the SSHPrivateKey is going to be created based in a string provided
+	UseSSHPrivateKeyAsInline = "use-ssh-private-key-as-inline"
 	// DryRun is going to indicate if the changes are going to be committed or not
 	DryRun = "dry-run"
 	// LogLevel will indicate the log level
@@ -74,6 +76,8 @@ var runCmd = &cobra.Command{
 		}
 
 		var updateApps []updater.ChangeEntry
+		var tpl *template.Template
+		var err error
 		for k, v := range helmKVs {
 			updateApps = append(updateApps, updater.ChangeEntry{
 				Key:      k,
@@ -95,15 +99,13 @@ var runCmd = &cobra.Command{
 
 		logCtx := log.WithContext().AddField("application", appName)
 
-		if tpl, err := template.New("commitMessage").Parse(git.DefaultGitCommitMessage); err != nil {
+		if tpl, err = template.New("commitMessage").Parse(git.DefaultGitCommitMessage); err != nil {
 			logCtx.Fatalf("could not parse commit message template: %v", err)
 
 			return
-		} else {
-			logCtx.Debugf("Successfully parsed commit message template")
-
-			gitConf.Message = tpl
 		}
+		logCtx.Debugf("Successfully parsed commit message template")
+		gitConf.Message = tpl
 
 		cfg = updater.HelmUpdaterConfig{
 			DryRun:         dryRun,
@@ -115,7 +117,7 @@ var runCmd = &cobra.Command{
 			GitConf:        gitConf,
 		}
 
-		if err := runImageUpdater(cfg); err != nil {
+		if err = runImageUpdater(cfg); err != nil {
 			logCtx.Errorf("Error trying to update the %s application: %v", appName, err)
 		}
 	},
@@ -146,14 +148,15 @@ func init() {
 	rootCmd.AddCommand(runCmd)
 
 	runCmd.Flags().String(GitCommitUser, "", "Username to use for Git commits")
-	runCmd.Flags().String(GitCommitEmail, "", "E-Mail address to use for Git commits")
+	runCmd.Flags().String(GitCommitEmail, "", "e-mail address to use for Git commits")
 	runCmd.Flags().String(GitPassword, "", "Password for github user")
-	runCmd.Flags().String(GitBranch, "develop", "branch")
+	runCmd.Flags().String(GitBranch, "develop", "git repo branch")
 	runCmd.Flags().String(GitRepoURL, "", "git repo url")
 	runCmd.Flags().String(GitFile, "", "file eg. values.yaml")
 	runCmd.Flags().String(GitDir, "", "file eg. /production/charts/")
 	runCmd.Flags().String(AppName, "", "app name")
 	runCmd.Flags().String(SSHPrivateKey, "", "ssh private key")
+	runCmd.Flags().Bool(UseSSHPrivateKeyAsInline, false, "ssh private key inline creation, if true it will use ssh-private-key as input for create ssh private key file in temporal directory")
 	runCmd.Flags().Bool(DryRun, false, "run in dry-run mode. If set to true, do not perform any changes")
 	runCmd.Flags().String(LogLevel, "info", "set the loglevel to one of trace|debug|info|warn|error")
 	runCmd.Flags().StringToString(HelmKeyValues, nil, "helm key-values sets")

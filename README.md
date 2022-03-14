@@ -40,8 +40,8 @@ This repo aims to manage the development of `helm-repo-updater`, a CLI tool whos
     Flags:
           --app-name string                  app name
           --dry-run                          run in dry-run mode. If set to true, do not perform any changes
-          --git-branch string                branch (default "develop")
-          --git-commit-email string          E-Mail address to use for Git commits
+          --git-branch string                git repo branch (default "develop")
+          --git-commit-email string          e-mail address to use for Git commits
           --git-commit-user string           Username to use for Git commits
           --git-dir string                   file eg. /production/charts/
           --git-file string                  file eg. values.yaml
@@ -50,7 +50,8 @@ This repo aims to manage the development of `helm-repo-updater`, a CLI tool whos
           --helm-key-values stringToString   helm key-values sets (default [])
       -h, --help                             help for run
           --logLevel string                  set the loglevel to one of trace|debug|info|warn|error (default "info")
-          --ssh-private-key string           ssh private key (only using
+          --ssh-private-key string           ssh private key
+          --ssh-private-key-inline           ssh private key inline creation, if true it will use ssh-private-key as input for create ssh private key file in temporal directory
 
     Global Flags:
           --config string   config file (default is $HOME/.helm-repo-updater.yaml)

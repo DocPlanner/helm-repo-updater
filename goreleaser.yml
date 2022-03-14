@@ -14,6 +14,17 @@ builds:
       - amd64
       - arm64
 
+release:
+  github:
+    owner: DocPlanner
+    name: helm-repo-updater
+  footer: |
+    ## Docker Images
+    - `docplanner/helm-repo-updater:{{ trimprefix .Tag "v" }}`
+    - `docplanner/helm-repo-updater:latest`
+    - `ghcr.io/docplanner/helm-repo-updater:{{ trimprefix .Tag "v" }}`
+    - `ghcr.io/docplanner/helm-repo-updater:latest`
+
 changelog:
   sort: desc
 

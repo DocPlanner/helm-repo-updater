@@ -14,10 +14,17 @@ const (
 	validGitCredentialsUsername  = "test-user"
 	validGitCredentialsPassword  = "test-password"
 	validSSHPrivKeyRelativeRoute = "/test-git-server/private_keys/helm-repo-updater-test"
-	validGitRepoSSHURL           = "git@github.com:kubernetes/kubernetes.git"
-	validGitRepoHTTPSURL         = "https://github.com/kubernetes/kubernetes.git"
-	invalidGitRepoURL            = "github.com/kubernetes/kubernetes.git"
-	invalidPrivKeyRoute          = "/tmp/key-dont-exists"
+	validSSHPrivKeyString        = `-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+QyNTUxOQAAACCNAv45QMrXuGuWk7uadYNOlL1B2q/g2pw1g+xP5oD/EQAAAJjmelMZ5npT
+GQAAAAtzc2gtZWQyNTUxOQAAACCNAv45QMrXuGuWk7uadYNOlL1B2q/g2pw1g+xP5oD/EQ
+AAAEA8ubLuVW5jc+Q9a2divLLVfm0Up+eus/9f7/HvACUD2o0C/jlAyte4a5aTu5p1g06U
+vUHar+DanDWD7E/mgP8RAAAAFWRldm9wc0Bkb2NwbGFubmVyLmNvbQ==
+-----END OPENSSH PRIVATE KEY-----`
+	validGitRepoSSHURL   = "git@github.com:kubernetes/kubernetes.git"
+	validGitRepoHTTPSURL = "https://github.com/kubernetes/kubernetes.git"
+	invalidGitRepoURL    = "github.com/kubernetes/kubernetes.git"
+	invalidPrivKeyRoute  = "/tmp/key-dont-exists"
 )
 
 func TestNewCredsSSHURLSSHPrivKey(t *testing.T) {
@@ -31,6 +38,25 @@ func TestNewCredsSSHURLSSHPrivKey(t *testing.T) {
 		Username:   validGitCredentialsUsername,
 		Email:      validGitCredentialsEmail,
 		SSHPrivKey: *sshPrivKeyRoute,
+	}
+
+	repoURL := validGitRepoSSHURL
+
+	creds, err := g.NewGitCreds(repoURL, g.Password)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	expectedCredsString := "user: git, name: ssh-public-keys"
+	assert.DeepEqual(t, creds.String(), expectedCredsString)
+}
+
+func TestNewCredsSSHURLSSHPrivKeyFromString(t *testing.T) {
+	g := Credentials{
+		Username:             validGitCredentialsUsername,
+		Email:                validGitCredentialsEmail,
+		SSHPrivKey:           validSSHPrivKeyString,
+		SSHPrivKeyFileInline: true,
 	}
 
 	repoURL := validGitRepoSSHURL

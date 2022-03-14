@@ -19,3 +19,21 @@ func GetRouteRelativePath(numRelativePath int, relativePath string) (*string, er
 	finalPath = finalPath + relativePath
 	return &finalPath, nil
 }
+
+// CreateAndWriteContentInTempFile writes the string content in a temporary file
+// based in a pattern and creating the file in the default tmpDir of the machine
+func CreateAndWriteContentInTempFile(tempFilePattern string, content string) (*os.File, error) {
+	// create and open a temporary file
+	f, err := os.CreateTemp(os.TempDir(), tempFilePattern)
+	if err != nil {
+		return nil, err
+	}
+
+	// write data to the temporary file
+	data := []byte(content)
+	if _, err := f.Write(data); err != nil {
+		return nil, err
+	}
+
+	return f, nil
+}
