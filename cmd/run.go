@@ -31,8 +31,8 @@ const (
 	AppName = "app-name"
 	// SSHPrivateKey is the location of the SSH private key used for auth
 	SSHPrivateKey = "ssh-private-key"
-	// SSHPrivateKeyInline indicates if the SSHPrivateKey is going to be created based in a string provided
-	SSHPrivateKeyInline = "ssh-private-key-inline"
+	// UseSSHPrivateKeyAsInline indicates if the SSHPrivateKey is going to be created based in a string provided
+	UseSSHPrivateKeyAsInline = "use-ssh-private-key-as-inline"
 	// DryRun is going to indicate if the changes are going to be committed or not
 	DryRun = "dry-run"
 	// LogLevel will indicate the log level
@@ -156,7 +156,7 @@ func init() {
 	runCmd.Flags().String(GitDir, "", "file eg. /production/charts/")
 	runCmd.Flags().String(AppName, "", "app name")
 	runCmd.Flags().String(SSHPrivateKey, "", "ssh private key")
-	runCmd.Flags().Bool(SSHPrivateKeyInline, false, "ssh private key inline creation, if true it will use ssh-private-key as input for create ssh private key file in temporal directory")
+	runCmd.Flags().Bool(UseSSHPrivateKeyAsInline, false, "ssh private key inline creation, if true it will use ssh-private-key as input for create ssh private key file in temporal directory")
 	runCmd.Flags().Bool(DryRun, false, "run in dry-run mode. If set to true, do not perform any changes")
 	runCmd.Flags().String(LogLevel, "info", "set the loglevel to one of trace|debug|info|warn|error")
 	runCmd.Flags().StringToString(HelmKeyValues, nil, "helm key-values sets")
