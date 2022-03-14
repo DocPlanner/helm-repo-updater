@@ -9,9 +9,10 @@ IMAGE_REGISTRY	?= ghcr.io
 IMAGE_REPO		?= docplanner
 VERSION			?= develop
 
-
-IMAGE						= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater:${VERSION}
-IMAGE_LATEST				= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater:latest
+IMAGE 						= $(IMAGE_REPO)/helm-repo-updater:${VERSION}
+IMAGE_LATEST 				= $(IMAGE_REPO)/helm-repo-updater:latest
+IMAGE_GHCR					= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater:${VERSION}
+IMAGE_GHCR_LATEST			= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater:latest
 IMAGE_BUILD_TOOLS 			= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater/build-tools:${VERSION}
 IMAGE_GIT_REPO_SERVER_TOOL 	= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/helm-repo-updater/git-repo-server:${VERSION}
 
@@ -77,11 +78,11 @@ gofumpt: $(GOBIN_TOOL)
 
 .PHONY: docker-build
 docker-build: ## Build main image
-	DOCKER_BUILDKIT=1 docker build -f Dockerfile -t $(IMAGE) -t $(IMAGE_LATEST) .
+	DOCKER_BUILDKIT=1 docker build -f Dockerfile -t $(IMAGE) -t $(IMAGE_LATEST) -t $(IMAGE_GHCR) -t $(IMAGE_GHCR_LATEST) .
 
 .PHONY: publish
 publish: docker-build ## Publish main image
-	docker buildx build --push --platform=linux/amd64,linux/arm64 . -t $(IMAGE) -t $(IMAGE_LATEST)
+	docker buildx build --push --platform=linux/amd64,linux/arm64 . -t $(IMAGE) -t $(IMAGE_LATEST) -t $(IMAGE_GHCR) -t $(IMAGE_GHCR_LATEST)
 
 .PHONY: docker-dev-container
 docker-dev-container: ## Build devcontainer image

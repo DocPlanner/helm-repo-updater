@@ -40,14 +40,12 @@ before:
   hooks:
     - go mod tidy
 
-release:
-  github:
-    owner: DocPlanner
-    name: helm-repo-updater
-
 nfpms:
   - id: helm-repo-updater
     builds:
       - helm-repo-updater
     formats:
       - deb
+    vendor: DocPlanner
+    homepage: https://github.com/DocPlanner/helm-repo-updater
+    maintainer: DocPlanner <devops@docplanner.com>
