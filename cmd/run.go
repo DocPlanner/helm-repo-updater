@@ -59,6 +59,7 @@ var runCmd = &cobra.Command{
 		appName, _ := cmd.Flags().GetString(AppName)
 		logLevel, _ := cmd.Flags().GetString(LogLevel)
 		dryRun, _ := cmd.Flags().GetBool(DryRun)
+		useSSHPrivateKeyAsInline, _ := cmd.Flags().GetBool(UseSSHPrivateKeyAsInline)
 		helmKVs, _ := cmd.Flags().GetStringToString(HelmKeyValues)
 
 		if err := log.SetLogLevel(logLevel); err != nil {
@@ -86,10 +87,11 @@ var runCmd = &cobra.Command{
 		}
 
 		gitCredentials := &git.Credentials{
-			Username:   gitUser,
-			Email:      gitEmail,
-			Password:   gitPass,
-			SSHPrivKey: sshKey,
+			Username:             gitUser,
+			Email:                gitEmail,
+			Password:             gitPass,
+			SSHPrivKey:           sshKey,
+			SSHPrivKeyFileInline: useSSHPrivateKeyAsInline,
 		}
 
 		gitConf := &git.Conf{
@@ -119,6 +121,7 @@ var runCmd = &cobra.Command{
 
 		if err = runImageUpdater(cfg); err != nil {
 			logCtx.Errorf("Error trying to update the %s application: %v", appName, err)
+			os.Exit(1)
 		}
 	},
 }
