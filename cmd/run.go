@@ -121,6 +121,7 @@ var runCmd = &cobra.Command{
 
 		if err = runImageUpdater(cfg); err != nil {
 			logCtx.Errorf("Error trying to update the %s application: %v", appName, err)
+			os.Exit(1)
 		}
 	},
 }
