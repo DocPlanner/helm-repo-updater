@@ -38,6 +38,7 @@ This repo aims to manage the development of `helm-repo-updater`, a CLI tool whos
       helm-repo-updater run [flags]
 
     Flags:
+          --allow-nothing-to-update          allow the error message 'nothing to update, skipping commit' and finish without exit 1 the execution
           --app-name string                  app name
           --dry-run                          run in dry-run mode. If set to true, do not perform any changes
           --git-branch string                git repo branch (default "develop")
@@ -51,7 +52,7 @@ This repo aims to manage the development of `helm-repo-updater`, a CLI tool whos
       -h, --help                             help for run
           --logLevel string                  set the loglevel to one of trace|debug|info|warn|error (default "info")
           --ssh-private-key string           ssh private key
-          --ssh-private-key-inline           ssh private key inline creation, if true it will use ssh-private-key as input for create ssh private key file in temporal directory
+          --use-ssh-private-key-as-inline    ssh private key inline creation, if true it will use ssh-private-key as input for create ssh private key file in temporal directory
 
     Global Flags:
           --config string   config file (default is $HOME/.helm-repo-updater.yaml)
@@ -108,7 +109,31 @@ This repo aims to manage the development of `helm-repo-updater`, a CLI tool whos
     INFO[2022-03-03T16:24:17+01:00] Setting new value for key .image.tag: 1.1.0   application=example-app
     INFO[2022-03-03T16:24:17+01:00] target for key .image.tag is the same, skipping  application=example-app
     ERRO[2022-03-03T16:24:17+01:00] Could not update application spec: nothing to update, skipping commit  application=example-app
-    ERRO[2022-03-03T16:24:17+01:00] Error trying to update the example-app application: nothing to update, skipping commit  application=example-app
+    INFO[2022-03-03T16:24:17+01:00] nothing to update, skipping commit  application=example-app
+    ```
+
+   - Example run to update the `.image.tag` key to `1.1.0` in the `develop` branch of the `test-repo` repository, being `1.1.0` the value currently present in the repository for the above key without allowing the error with message `nothing to update, skipping commit`:
+    ```
+    $ helm-repo-updater run \
+      --allow-nothing-to-update=false \
+      --app-name=example-app \
+      --git-branch="develop" \
+      --git-commit-user="test-user" \
+      --git-commit-email="test-user@docplanner.com" \
+      --git-file="values.yaml" \
+      --helm-key-values=".image.tag=1.1.0" \
+      --git-repo-url="git@github.com:DocPlanner/example-repo.git" \
+      --ssh-private-key="test-git-server/private_keys/helm-repo-updater-test"
+    INFO[2022-03-03T16:24:17+01:00] Cloning git repository git@github.com:DocPlanner/example-repo.git in temporal folder located in /var/folders/vb/v4wr_9f52ns4mmdkwp4_35cm0000gp/T/git-example-app1208822616  application=example-app
+    Enumerating objects: 8, done.
+    Counting objects: 100% (8/8), done.
+    Compressing objects: 100% (2/2), done.
+    Total 8 (delta 0), reused 0 (delta 0), pack-reused 0
+    INFO[2022-03-03T16:24:17+01:00] Pulling latest changes of branch develop      application=example-app
+    INFO[2022-03-03T16:24:17+01:00] Actual value for key .image.tag: 1.1.0        application=example-app
+    INFO[2022-03-03T16:24:17+01:00] Setting new value for key .image.tag: 1.1.0   application=example-app
+    INFO[2022-03-03T16:24:17+01:00] target for key .image.tag is the same, skipping  application=example-app
+    ERRO[2022-03-03T16:24:17+01:00] Could not update application spec: nothing to update, skipping commit  application=example-app
     ```
 
 - Using a Docker Container:
@@ -149,6 +174,35 @@ This repo aims to manage the development of `helm-repo-updater`, a CLI tool whos
     ```
 
   - Example run to update the `.image.tag` key to `1.1.0` in the `develop` branch of the `k8s-argocd-apps` repository for the `example-app`, being `1.1.0` the value currently present in the repository for the above key:
+    ```
+    $ docker run -v ~/.ssh/repositories_keys/example-user_github:/tmp/ssh_key ghcr.io/docplanner/helm-repo-updater run \
+        --app-name=example-app \
+        --git-branch="develop" \
+        --git-commit-user="test-user" \
+        --git-commit-email="test-user@docplanner.com" \
+        --git-dir="apps/" \
+        --git-file="helm/t0/testing/image.yaml" \
+        --helm-key-values=".image.tag=1.1.0" \
+        --git-repo-url="git@github.com:DocPlanner/example-repo.git" \
+        --logLevel=debug \
+        --ssh-private-key="/tmp/ssh_key"
+    time="2022-03-04T11:30:48Z" level=debug msg="Successfully parsed commit message template" application=example-app
+    time="2022-03-04T11:30:48Z" level=debug msg="Processing application example-app in directory apps/example-app/helm/t0/testing/image.yaml"
+    time="2022-03-04T11:30:48Z" level=debug msg="Created temporal directory /tmp/git-example-app2386521755 to clone repository git@github.com:DocPlanner/example-repo.git" application=example-app
+    time="2022-03-04T11:30:48Z" level=info msg="Cloning git repository git@github.com:DocPlanner/example-repo.git in temporal folder located in /tmp/git-example-app2386521755" application=example-app
+    Enumerating objects: 200, done.
+    Counting objects: 100% (191/191), done.
+    Compressing objects: 100% (103/103), done.
+    Total 200 (delta 37), reused 159 (delta 25), pack-reused 9
+    time="2022-03-04T11:30:49Z" level=info msg="Pulling latest changes of branch develop" application=example-app
+    time="2022-03-04T11:30:50Z" level=info msg="Actual value for key .image.tag: 1.1.0" application=example-app
+    time="2022-03-04T11:30:50Z" level=info msg="Setting new value for key .image.tag: 1.1.0" application=example-app
+    time="2022-03-04T11:30:50Z" level=info msg="target for key .image.tag is the same, skipping" application=example-app
+    time="2022-03-04T11:30:50Z" level=error msg="Could not update application spec: nothing to update, skipping commit" application=example-app
+    time="2022-03-04T11:30:50Z" level=info msg="nothing to update, skipping commit"  application=example-app
+    ```
+
+    - Example run to update the `.image.tag` key to `1.1.0` in the `develop` branch of the `k8s-argocd-apps` repository for the `example-app`, being `1.1.0` the value currently present in the repository for the above key without allowing the error with message `nothing to update, skipping commit`::
     ```
     $ docker run -v ~/.ssh/repositories_keys/example-user_github:/tmp/ssh_key ghcr.io/docplanner/helm-repo-updater run \
         --app-name=example-app \
