@@ -6,13 +6,14 @@ import (
 
 // HelmUpdaterConfig contains global configuration and required runtime data
 type HelmUpdaterConfig struct {
-	DryRun         bool
-	LogLevel       string
-	AppName        string
-	UpdateApps     []ChangeEntry
-	File           string
-	GitCredentials *git.Credentials
-	GitConf        *git.Conf
+	DryRun                    bool
+	LogLevel                  string
+	AppName                   string
+	UpdateApps                []ChangeEntry
+	File                      string
+	GitCredentials            *git.Credentials
+	GitConf                   *git.Conf
+	AllowErrorNothingToUpdate bool
 }
 
 // ChangeEntry represents values that has been changed by Helm Repo Updater

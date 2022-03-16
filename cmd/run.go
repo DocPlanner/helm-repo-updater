@@ -70,9 +70,9 @@ func runImageUpdater(cfg updater.HelmUpdaterConfig) error {
 }
 
 // checkExecutionRunImageUpdater represents the check of the execution of the runImageUpdater command
-func checkExecutionRunImageUpdater(cfg updater.HelmUpdaterConfig, logCtx *log.Context, appName string, allowErrorNothingToUpdate bool) {
+func checkExecutionRunImageUpdater(cfg updater.HelmUpdaterConfig, logCtx *log.Context, appName string) {
 	if err := runImageUpdater(cfg); err != nil {
-		if err.Error() != AllowErrorNothingToUpdateMessage || !allowErrorNothingToUpdate {
+		if err.Error() != AllowErrorNothingToUpdateMessage || !cfg.AllowErrorNothingToUpdate {
 			logCtx.Errorf("Error trying to update the %s application: %v", appName, err)
 			os.Exit(1)
 		}
@@ -149,16 +149,17 @@ var runCmd = &cobra.Command{
 		gitConf.Message = tpl
 
 		cfg = updater.HelmUpdaterConfig{
-			DryRun:         dryRun,
-			LogLevel:       logLevel,
-			AppName:        appName,
-			UpdateApps:     updateApps,
-			File:           path.Join(gitDir, appName, gitFile),
-			GitCredentials: gitCredentials,
-			GitConf:        gitConf,
+			DryRun:                    dryRun,
+			LogLevel:                  logLevel,
+			AppName:                   appName,
+			UpdateApps:                updateApps,
+			File:                      path.Join(gitDir, appName, gitFile),
+			GitCredentials:            gitCredentials,
+			GitConf:                   gitConf,
+			AllowErrorNothingToUpdate: allowErrorNothingToUpdate,
 		}
 
-		checkExecutionRunImageUpdater(cfg, logCtx, appName, allowErrorNothingToUpdate)
+		checkExecutionRunImageUpdater(cfg, logCtx, appName)
 	},
 }
 
