@@ -623,6 +623,11 @@ func TestUpdateApplication(t *testing.T) {
 		log.Fatal(err)
 	}
 	assert.DeepEqual(t, *apps, changeEntries)
+
+	cfg.AllowErrorNothingToUpdate = false
+	_, err = UpdateApplication(cfg, syncState)
+	expectedErrorMessage := "nothing to update, skipping commit"
+	assert.Error(t, err, expectedErrorMessage)
 }
 
 func getSSHRepoHostnameAndPort() string {

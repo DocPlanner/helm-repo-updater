@@ -39,9 +39,47 @@ const (
 	LogLevel = "logLevel"
 	// HelmKeyValues will be used for indicate the key and values to be changed in helm
 	HelmKeyValues = "helm-key-values"
+	// AllowErrorNothingToUpdate represents that is allowed the error nothing to update
+	AllowErrorNothingToUpdate = "allow-nothing-to-update"
+	// AllowErrorNothingToUpdateMessage represents the allowed error that will be the exception for make an os.Exit(1) call when is detected
+	AllowErrorNothingToUpdateMessage = "nothing to update, skipping commit"
 )
 
 var cfg = updater.HelmUpdaterConfig{}
+
+// runImageUpdater checks and apply the necessary update in the helm application
+func runImageUpdater(cfg updater.HelmUpdaterConfig) error {
+
+	syncState := updater.NewSyncIterationState()
+
+	err := func(cfg updater.HelmUpdaterConfig) error {
+		log.Debugf("Processing application %s in directory %s", cfg.AppName, cfg.File)
+
+		_, err := updater.UpdateApplication(cfg, syncState)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}(cfg)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// checkExecutionRunImageUpdater represents the check of the execution of the runImageUpdater command
+func checkExecutionRunImageUpdater(cfg updater.HelmUpdaterConfig, logCtx *log.Context, appName string) {
+	if err := runImageUpdater(cfg); err != nil {
+		if err.Error() != AllowErrorNothingToUpdateMessage || !cfg.AllowErrorNothingToUpdate {
+			logCtx.Errorf("Error trying to update the %s application: %v", appName, err)
+			os.Exit(1)
+		}
+		logCtx.Infof("%s", err.Error())
+		return
+	}
+}
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -61,6 +99,7 @@ var runCmd = &cobra.Command{
 		dryRun, _ := cmd.Flags().GetBool(DryRun)
 		useSSHPrivateKeyAsInline, _ := cmd.Flags().GetBool(UseSSHPrivateKeyAsInline)
 		helmKVs, _ := cmd.Flags().GetStringToString(HelmKeyValues)
+		allowErrorNothingToUpdate, _ := cmd.Flags().GetBool(AllowErrorNothingToUpdate)
 
 		if err := log.SetLogLevel(logLevel); err != nil {
 			fmt.Println(err)
@@ -110,41 +149,18 @@ var runCmd = &cobra.Command{
 		gitConf.Message = tpl
 
 		cfg = updater.HelmUpdaterConfig{
-			DryRun:         dryRun,
-			LogLevel:       logLevel,
-			AppName:        appName,
-			UpdateApps:     updateApps,
-			File:           path.Join(gitDir, appName, gitFile),
-			GitCredentials: gitCredentials,
-			GitConf:        gitConf,
+			DryRun:                    dryRun,
+			LogLevel:                  logLevel,
+			AppName:                   appName,
+			UpdateApps:                updateApps,
+			File:                      path.Join(gitDir, appName, gitFile),
+			GitCredentials:            gitCredentials,
+			GitConf:                   gitConf,
+			AllowErrorNothingToUpdate: allowErrorNothingToUpdate,
 		}
 
-		if err = runImageUpdater(cfg); err != nil {
-			logCtx.Errorf("Error trying to update the %s application: %v", appName, err)
-			os.Exit(1)
-		}
+		checkExecutionRunImageUpdater(cfg, logCtx, appName)
 	},
-}
-
-func runImageUpdater(cfg updater.HelmUpdaterConfig) error {
-
-	syncState := updater.NewSyncIterationState()
-
-	err := func(cfg updater.HelmUpdaterConfig) error {
-		log.Debugf("Processing application %s in directory %s", cfg.AppName, cfg.File)
-
-		_, err := updater.UpdateApplication(cfg, syncState)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}(cfg)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func init() {
@@ -163,6 +179,7 @@ func init() {
 	runCmd.Flags().Bool(DryRun, false, "run in dry-run mode. If set to true, do not perform any changes")
 	runCmd.Flags().String(LogLevel, "info", "set the loglevel to one of trace|debug|info|warn|error")
 	runCmd.Flags().StringToString(HelmKeyValues, nil, "helm key-values sets")
+	runCmd.Flags().Bool(AllowErrorNothingToUpdate, true, "allow the error message 'nothing to update, skipping commit' and finish without exit 1 the execution")
 
 	_ = runCmd.MarkFlagRequired(GitCommitUser)
 	_ = runCmd.MarkFlagRequired(GitCommitEmail)
