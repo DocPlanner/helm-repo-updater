@@ -251,6 +251,7 @@ func fetchLatestChangesGitRepository(appName string, gitR git.Repository, creds 
 	err := gitR.Fetch(&git.FetchOptions{
 		RefSpecs: []config.RefSpec{"refs/*:refs/*", "HEAD:refs/heads/HEAD"},
 		Auth:     creds,
+		Force:    true,
 	})
 	if err != nil {
 		return nil, err
