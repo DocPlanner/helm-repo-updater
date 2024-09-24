@@ -78,6 +78,8 @@ func commitGitChanges(appName string, gitW git.Worktree, commitMessage string, g
 		},
 	})
 	if err != nil {
+		logCtx.Errorf(err.Error())
+
 		return nil, err
 	}
 	return &commit, nil
@@ -93,6 +95,8 @@ func pushGitChanges(appName string, objC object.Commit, gitR *git.Repository, gi
 		Auth: gitAuth,
 	})
 	if err != nil {
+		logCtx.Errorf(err.Error())
+
 		return err
 	}
 
@@ -110,6 +114,8 @@ func commitAndPushGitChanges(cfg HelmUpdaterConfig, commitMessage string, gitW g
 	logCtx.Infof("Adding file %s to git for commit changes", targetFile)
 	_, err := gitW.Add(targetFile)
 	if err != nil {
+		logCtx.Errorf(err.Error())
+
 		return err
 	}
 
@@ -120,12 +126,16 @@ func commitAndPushGitChanges(cfg HelmUpdaterConfig, commitMessage string, gitW g
 
 	gitR, err := git.PlainOpen(tempRoot)
 	if err != nil {
+		logCtx.Errorf(err.Error())
+
 		return err
 	}
 
 	logCtx.Debugf("Obtaining current HEAD to verify added changes")
 	obj, err := gitR.CommitObject(*commit)
 	if err != nil {
+		logCtx.Errorf(err.Error())
+
 		return err
 	}
 	err = pushGitChanges(cfg.AppName, *obj, gitR, gitAuth)
@@ -288,26 +298,36 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 	logCtx := log.WithContext().AddField("application", cfg.AppName)
 	creds, err := cfg.GitCredentials.NewGitCreds(cfg.GitConf.RepoURL, cfg.GitCredentials.Password)
 	if err != nil {
+		logCtx.Errorf(err.Error())
+
 		return nil, fmt.Errorf("could not get creds for repo '%s': %v", cfg.AppName, err)
 	}
 
 	tempRoot, err := createTempFileInDirectory(fmt.Sprintf("git-%s", cfg.AppName), cfg.AppName, cfg.GitConf.RepoURL)
 	if err != nil {
+		logCtx.Errorf(err.Error())
+
 		return nil, err
 	}
 
 	gitW, err := cloneGitRepositoryInBranch(cfg.AppName, cfg.GitConf.RepoURL, creds, *tempRoot, cfg.GitConf.Branch)
 	if err != nil {
+		logCtx.Errorf(err.Error())
+
 		return nil, err
 	}
 
 	// write changes to files
 	if apps, err = write(cfg, *tempRoot, *gitW); err != nil {
+		logCtx.Errorf(err.Error())
+
 		return nil, err
 	}
 
 	commitMessage, err := configureCommitMessage(cfg.AppName, apps, cfg.GitConf.Message)
 	if err != nil {
+		logCtx.Errorf(err.Error())
+
 		return nil, err
 	}
 
@@ -318,6 +338,8 @@ func commitChangesGit(cfg HelmUpdaterConfig, write changeWriter) (*[]ChangeEntry
 
 	err = commitAndPushGitChanges(cfg, *commitMessage, *gitW, *tempRoot, creds)
 	if err != nil {
+		logCtx.Errorf(err.Error())
+
 		return nil, err
 	}
 
