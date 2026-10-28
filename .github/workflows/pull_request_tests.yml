@@ -10,13 +10,13 @@ on:
 jobs:
   static-checks:
     name: Static Checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v4
       - name: Configure python
         uses: actions/setup-python@v2.3.1
         with:
-          python-version: '3.9'
+          python-version: '3.14'
       - name: Configure Go
         uses: actions/setup-go@v2
         with:
@@ -26,11 +26,11 @@ jobs:
         env:
           GOLANGCI_LINT_VERSION: "1.44.2"
       - name: Run pre-commit
-        uses: pre-commit/action@v2.0.3
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
 
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     container:
       image: ghcr.io/docplanner/helm-repo-updater/build-tools:develop
     services:
